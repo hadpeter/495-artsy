@@ -1,0 +1,220 @@
+{
+    "user_tests": [
+        {
+            "name": "create_user and get_user_attr",
+            "description": "Create User and fetch default state of the user: tests create_user and get_user_attr when key exists",
+            "user_id": "1",
+            "functions": ["create_user"],
+            "args": [("1", {"flow": 10,"volume": 20}, 0)],
+            "expected": {
+                "user_id": "1",
+                "coins": 0,
+                "brushes": [],
+                "paints": [],
+                "baseline": {
+                    "flow": 10,
+                    "volume": 20
+                },
+                "history": [],
+                "backgrounds": [],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "get_user_attr not found",
+            "description": "Checks that the get_user_attr function returns an empty dict if userId not found",
+            "user_id": "2",
+            "functions": [],
+            "args": [],
+            "expected": "None"
+        },
+        {
+            "name": "add_coins",
+            "description": "add coins to user account and delete coins from user account",
+            "user_id": "1",
+            "functions": ["add_coins", "add_coins"],
+            "args": [("1", 10), ("1", -3)],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": [],
+                "paints": [],
+                "baseline": {
+                    "flow": 10,
+                    "volume": 20
+                },
+                "history": [],
+                "backgrounds": [],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "add_brush",
+            "description": "add brushes to user account",
+            "user_id": "1",
+            "functions": ["add_brush", "add_brush"],
+            "args": [("1", "3"), ("1", "1")],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": [],
+                "baseline": {
+                    "flow": 10,
+                    "volume": 20
+                },
+                "history": [],
+                "backgrounds": [],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "add_paint",
+            "description": "add paints to user account",
+            "user_id": "1",
+            "functions": ["add_paint", "add_paint", "add_paint"],
+            "args": [("1", "2"), ("1", "1"), ("1", "4")],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 10,
+                    "volume": 20
+                },
+                "history": [],
+                "backgrounds": [],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "add_background",
+            "description": "add backgrounds to user account",
+            "user_id": "1",
+            "functions": ["add_background", "add_background", "add_background"],
+            "args": [("1", "5"), ("1", "2"), ("1", "3")],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 10,
+                    "volume": 20
+                },
+                "history": [],
+                "backgrounds": ["5", "2", "3"],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "set_baseline",
+            "description": "sets baseline of user account",
+            "user_id": "1",
+            "functions": ["set_baseline"],
+            "args": [("1", 100, 50)],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 100,
+                    "volume": 50
+                },
+                "history": [],
+                "backgrounds": ["5", "2", "3"],
+                "drawings": [],
+                "lastBreath": 0
+            }
+        },
+        {
+            "name": "add_breath",
+            "description": "adds a breath to the history of user account",
+            "user_id": "1",
+            "functions": ["add_breath", "add_breath", "add_breath"],
+            "args": [("1", 100, 50, 25), ("1", 200, 100, 50), ("1", 120, 140, 75)],
+            "expected": {
+                "user_id": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 100,
+                    "volume": 50
+                },
+                "history": [
+                    {
+                        "flow": 100,
+                        "volume": 50
+                    },
+                    {
+                        "flow": 200,
+                        "volume": 100
+                    },
+                    {
+                        "flow": 120,
+                        "volume": 140
+                    }
+                ],
+                "backgrounds": ["5", "2", "3"],
+                "drawings": [],
+                "lastBreath": 75
+            }
+        },
+        {
+            "name": "add_coins NOT FOUND",
+            "description": "add coins to non-existant user account",
+            "user_id": "5",
+            "functions": ["add_coins", "add_coins"],
+            "args": [("5", 10), ("5", -3)],
+            "expected": "None"
+        },
+        {
+            "name": "add_brush NOT FOUND",
+            "description": "add brushes to user account",
+            "user_id": "5",
+            "functions": ["add_brush", "add_brush"],
+            "args": [("5", "3"), ("5", "1")],
+            "expected": "None"
+        },
+        {
+            "name": "add_paint NOT FOUND",
+            "description": "add paints to non-existant user account",
+            "user_id": "5",
+            "functions": ["add_paint", "add_paint", "add_paint"],
+            "args": [("5", "2"), ("5", "1"), ("5", "4")],
+            "expected": "None"
+        },
+        {
+            "name": "add_background NOT FOUND",
+            "description": "add backgrounds to non-existant user account",
+            "user_id": "5",
+            "functions": ["add_background", "add_background", "add_background"],
+            "args": [("5", "5"), ("5", "2"), ("5", "3")],
+            "expected": "None"
+        },
+        {
+            "name": "set_baseline NOT FOUND",
+            "description": "sets baseline of non-existant user account",
+            "user_id": "5",
+            "functions": ["set_baseline"],
+            "args": [("5", 100, 50)],
+            "expected": "None"
+        },
+        {
+            "name": "add_breath NOT FOUND",
+            "description": "adds a breath to the history of non-existant user account",
+            "user_id": "5",
+            "functions": ["add_breath", "add_breath", "add_breath"],
+            "args": [("5", 100, 50, 25), ("5", 200, 100, 50), ("5", 120, 140, 75)],
+            "expected": "None"
+        }
+    ]
+}
