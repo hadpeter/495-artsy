@@ -1,37 +1,38 @@
-# from dblib import *
-from mockLib import *
+ from dblib import *
+#from mockLib import *
 import time
 import pprint
+import json
 
-time = time.time() # time when using real library
+#time = time.time() # time when using real library
 # time = 0 # time when using mock
 
-tests = {
-    'user_tests': [
-        {
-            'name': "create_user and get_user_attr",
-            'description': 'Create User and fetch default state of the user: tests create_user and get_user_attr when key exists',
-            'user_id': '1',
-            'functions': [create_user],
-            'args': [('1', {'flow': 10,'volume': 20}, time)],
-            'expected': {
-                'user_id': '1',
-                'coins': 0,
-                'brushes': [],
-                'paints': [],
-                'baseline': {
-                    'flow': 10,
-                    'volume': 20
-                },
-                'history': [],
-                'backgrounds': [],
-                'drawings': [],
-                'lastBreath': time
-            }
-        }
-    ],
-    'drawing_tests': 
-}
+#tests = {
+#    'user_tests': [
+#        {
+#            'name': "create_user and get_user_attr",
+#            'description': 'Create User and fetch default state of the user: tests create_user and get_user_attr when key exists',
+#            'user_id': '1',
+#            'functions': [create_user],
+#            'args': [('1', {'flow': 10,'volume': 20}, time)],
+#            'expected': {
+#                'user_id': '1',
+#                'coins': 0,
+#                'brushes': [],
+#                'paints': [],
+#                'baseline': {
+#                    'flow': 10,
+#                    'volume': 20
+#                },
+#                'history': [],
+#                'backgrounds': [],
+#                'drawings': [],
+#                'lastBreath': time
+#            }
+#        }
+#    ],
+#    'drawing_tests':
+#}
 
 function_map = {
     "create_user": create_user,
@@ -110,7 +111,11 @@ def execute_user_test(test):
 def test(tests):
     for test in tests['user_tests']:
         execute_user_test(test)
+        
+def main():
+    tests = json.load('dbLib_tests.json')
+    test(tests)
 
 if __name__ == "__main__":
-    test(tests)
+    main()
 
