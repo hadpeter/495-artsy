@@ -5,9 +5,9 @@
             "description": "Create User and fetch default state of the user: tests create_user and get_user_attr when key exists",
             "user_id": "1",
             "functions": ["create_user"],
-            "args": [("1", {"flow": 10,"volume": 20}, 0)],
+            "args": [["1",{"flow": 10, "volume": 20},0]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 0,
                 "brushes": [],
                 "paints": [],
@@ -34,9 +34,9 @@
             "description": "add coins to user account and delete coins from user account",
             "user_id": "1",
             "functions": ["add_coins", "add_coins"],
-            "args": [("1", 10), ("1", -3)],
+            "args": [["1", 10], ["1", -3]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": [],
                 "paints": [],
@@ -55,9 +55,9 @@
             "description": "add brushes to user account",
             "user_id": "1",
             "functions": ["add_brush", "add_brush"],
-            "args": [("1", "3"), ("1", "1")],
+            "args": [["1", "3"], ["1", "1"]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": [],
@@ -76,9 +76,9 @@
             "description": "add paints to user account",
             "user_id": "1",
             "functions": ["add_paint", "add_paint", "add_paint"],
-            "args": [("1", "2"), ("1", "1"), ("1", "4")],
+            "args": [["1", "2"], ["1", "1"], ["1", "4"]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
@@ -97,9 +97,9 @@
             "description": "add backgrounds to user account",
             "user_id": "1",
             "functions": ["add_background", "add_background", "add_background"],
-            "args": [("1", "5"), ("1", "2"), ("1", "3")],
+            "args": [["1", "5"], ["1", "2"], ["1", "3"]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
@@ -118,9 +118,9 @@
             "description": "sets baseline of user account",
             "user_id": "1",
             "functions": ["set_baseline"],
-            "args": [("1", 100, 50)],
+            "args": [["1", 100, 50]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
@@ -139,9 +139,9 @@
             "description": "adds a breath to the history of user account",
             "user_id": "1",
             "functions": ["add_breath", "add_breath", "add_breath"],
-            "args": [("1", 100, 50, 25), ("1", 200, 100, 50), ("1", 120, 140, 75)],
+            "args": [["1", 100, 50, 25], ["1", 200, 100, 50], ["1", 120, 140, 75]],
             "expected": {
-                "user_id": "1",
+                "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
@@ -173,7 +173,7 @@
             "description": "add coins to non-existant user account",
             "user_id": "5",
             "functions": ["add_coins", "add_coins"],
-            "args": [("5", 10), ("5", -3)],
+            "args": [["5", 10], ["5", -3]],
             "expected": "None"
         },
         {
@@ -181,7 +181,7 @@
             "description": "add brushes to user account",
             "user_id": "5",
             "functions": ["add_brush", "add_brush"],
-            "args": [("5", "3"), ("5", "1")],
+            "args": [["5", "3"], ["5", "1"]],
             "expected": "None"
         },
         {
@@ -189,7 +189,7 @@
             "description": "add paints to non-existant user account",
             "user_id": "5",
             "functions": ["add_paint", "add_paint", "add_paint"],
-            "args": [("5", "2"), ("5", "1"), ("5", "4")],
+            "args": [["5", "2"], ["5", "1"], ["5", "4"]],
             "expected": "None"
         },
         {
@@ -197,7 +197,7 @@
             "description": "add backgrounds to non-existant user account",
             "user_id": "5",
             "functions": ["add_background", "add_background", "add_background"],
-            "args": [("5", "5"), ("5", "2"), ("5", "3")],
+            "args": [["5", "5"], ["5", "2"], ["5", "3"]],
             "expected": "None"
         },
         {
@@ -205,7 +205,7 @@
             "description": "sets baseline of non-existant user account",
             "user_id": "5",
             "functions": ["set_baseline"],
-            "args": [("5", 100, 50)],
+            "args": [["5", 100, 50]],
             "expected": "None"
         },
         {
@@ -213,8 +213,203 @@
             "description": "adds a breath to the history of non-existant user account",
             "user_id": "5",
             "functions": ["add_breath", "add_breath", "add_breath"],
-            "args": [("5", 100, 50, 25), ("5", 200, 100, 50), ("5", 120, 140, 75)],
+            "args": [["5", 100, 50, 25], ["5", 200, 100, 50], ["5", 120, 140, 75]],
+            "expected": "None"
+        },
+        {
+            "name": "create_drawing and get_user_attr",
+            "description": "Create drawing and makes sure the drawing was added to user's profile",
+            "user_id": "1",
+            "functions": ["create_drawing"],
+            "args": [["1","2", false, "test", "test.svg", 0]],
+            "expected": {
+                "userId": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 100,
+                    "volume": 50
+                },
+                "history": [
+                    {
+                        "flow": 100,
+                        "volume": 50
+                    },
+                    {
+                        "flow": 200,
+                        "volume": 100
+                    },
+                    {
+                        "flow": 120,
+                        "volume": 140
+                    }
+                ],
+                "backgrounds": ["5", "2", "3"],
+                "drawings": ["2"],
+                "lastBreath": 75
+            }
+        },
+        {
+            "name": "create_user ALREADY EXISTS",
+            "description": "Create a user with existing key",
+            "user_id": "1",
+            "functions": ["create_user"],
+            "args": [["1",{"flow": 10, "volume": 20},0]],
+            "expected": {
+                "userId": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": {
+                    "flow": 100,
+                    "volume": 50
+                },
+                "history": [
+                    {
+                        "flow": 100,
+                        "volume": 50
+                    },
+                    {
+                        "flow": 200,
+                        "volume": 100
+                    },
+                    {
+                        "flow": 120,
+                        "volume": 140
+                    }
+                ],
+                "backgrounds": ["5", "2", "3"],
+                "drawings": ["2"],
+                "lastBreath": 75
+            }
+        }
+    ],
+    "drawing_tests": [
+        {
+            "name": "create_drawing and get_drawing_attr",
+            "description": "Create drawing and check drawing default attributes",
+            "drawing_id": "1",
+            "functions": ["create_drawing"],
+            "args": [["1","1", false, "test", "test.svg", 0]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "test",
+                "likes": 0,
+                "comments": [],
+                "filename": "test.svg"
+            }
+        },
+        {
+            "name": "create_drawing ALREADY EXISTS",
+            "description": "Create drawing and check drawing default attributes",
+            "drawing_id": "1",
+            "functions": ["create_drawing"],
+            "args": [["1","1", false, "test should fail", "test.svg", 0]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "test",
+                "likes": 0,
+                "comments": [],
+                "filename": "test.svg"
+            }
+        },
+        {
+            "name": "create_drawing USER DOES NOT EXIST",
+            "description": "Create drawing and check drawing default attributes",
+            "drawing_id": "3",
+            "functions": ["create_drawing"],
+            "args": [["4","3", false, "test should fail", "test.svg", 0]],
+            "expected": "None"
+        },
+        {
+            "name": "publish_drawing",
+            "description": "change published status of image to true",
+            "drawing_id": "1",
+            "functions": ["publish_drawing"],
+            "args": [["1"]],
+            "expected": {
+                "drawingId": "1",
+                "published": true,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "test",
+                "likes": 0,
+                "comments": [],
+                "filename": "test.svg"
+            }
+        },
+        {
+            "name": "publish_drawing DOES NOT EXIST",
+            "description": "change published status of image to true",
+            "drawing_id": "9",
+            "functions": ["publish_drawing"],
+            "args": [["9"]],
+            "expected": "None"
+        },
+        {
+            "name": "unpublish_drawing",
+            "description": "change published status of image to false",
+            "drawing_id": "1",
+            "functions": ["unpublish_drawing"],
+            "args": [["1"]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "test",
+                "likes": 0,
+                "comments": [],
+                "filename": "test.svg"
+            }
+        },
+        {
+            "name": "unpublish_drawing DOES NOT EXIST",
+            "description": "change published status of image to false",
+            "drawing_id": "9",
+            "functions": ["unpublish_drawing"],
+            "args": [["9"]],
+            "expected": "None"
+        },
+        {
+            "name": "add_like",
+            "description": "add likes to image",
+            "drawing_id": "1",
+            "functions": ["add_like", "add_like", "add_like"],
+            "args": [["1"], ["1"], ["1"]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "test",
+                "likes": 3,
+                "comments": [],
+                "filename": "test.svg"
+            }
+        },
+        {
+            "name": "add_like DOES NOT EXIST",
+            "description": "add likes to image",
+            "drawing_id": "9",
+            "functions": ["add_like", "add_like", "add_like"],
+            "args": [["9"], ["9"], ["9"]],
             "expected": "None"
         }
-    ]
+    ],
+    "gallery_tests": {
+        "setup": {
+            "functions": [],
+            "args": []
+        },
+        "tests": [
+        ]
+    }
 }
