@@ -213,6 +213,34 @@ def publish_drawing(drawingId):
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
+            
+def set_title(drawingId, title):
+    try:
+        drawing_table.update_item(
+            Key={
+                'drawingId': drawingId
+            },
+            UpdateExpression='SET title = :b',
+            ConditionExpression=Attr('drawingId').eq(drawingId),
+            ExpressionAttributeValues={ ":b": title }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+            
+def update_modified(drawingId, time):
+    try:
+        drawing_table.update_item(
+            Key={
+                'drawingId': drawingId
+            },
+            UpdateExpression='SET modified = :b',
+            ConditionExpression=Attr('drawingId').eq(drawingId),
+            ExpressionAttributeValues={ ":b": time }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
     
 def unpublish_drawing(drawingId):
     try:
