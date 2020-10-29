@@ -1,6 +1,5 @@
 import boto3
 import botocore
-import time
 from boto3.dynamodb.conditions import Key, Attr
 
 dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
@@ -16,7 +15,7 @@ drawing_table = dynamodb.Table('drawings')
 ##########################################################
 
 
-def create_user(userId, baseline, time):
+def create_user(userId, time):
     try:
         user_table.put_item(
             Item = {
@@ -24,7 +23,7 @@ def create_user(userId, baseline, time):
                 'coins': 0,
                 'brushes': [],
                 'paints': [],
-                'baseline': baseline,
+                'baseline': {'flow': None, 'volume': None},
                 'history': [],
                 'backgrounds': [],
                 'drawings': [],
@@ -149,7 +148,7 @@ def add_breath(userId, flow, vol, time):
 ##########################################################
 
 
-def create_drawing(userId, drawingId, coloringPage, title, file, time):
+def create_drawing(userId, drawingId, coloringPage, time):
     try:
         drawing_table.put_item(
             Item = {
@@ -157,10 +156,9 @@ def create_drawing(userId, drawingId, coloringPage, title, file, time):
                 'published': False,
                 'modified': time,
                 'coloringPage': coloringPage,
-                'title': title,
+                'title': '',
                 'likes': 0,
-                'comments': [],
-                'filename' : file
+                'comments': []
             },
             ConditionExpression=Attr('drawingId').not_exists()
         )
@@ -284,8 +282,8 @@ def fetch_gallery_all():
 def fetch_gallery_coloringPages():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, filename',
-        FilterExpression=Attr('published').eq(":t") & Attr('coloringPage').eq(":t"),
-        ExpressionAttributeValues={ ":b": True, ":t": True }
+        FilterExpression=Attr('published').eq(":t") & Attr('coloringPage').ne(":t"),
+        ExpressionAttributeValues={ ":b": True, ":t": '' }
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -296,7 +294,7 @@ def fetch_gallery_canvases():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, filename',
         FilterExpression=Attr('published').eq(":t") & Attr('coloringPage').eq(":t"),
-        ExpressionAttributeValues={ ":b": True, ":t": False }
+        ExpressionAttributeValues={ ":b": True, ":t": '' }
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -321,8 +319,8 @@ def fetch_user_art_coloringPages(userId):
     drawings = user['drawings']
     response = drawing_table.query(
         ProjectionExpression='drawingId, title, filename',
-        KeyConditionExpression=Attr('drawingId').is_in(":lst") & Attr('coloringPage').eq(":t"),
-        ExpressionAttributeValues={ ":lst": drawings, ":t": True }
+        KeyConditionExpression=Attr('drawingId').is_in(":lst") & Attr('coloringPage').ne(":t"),
+        ExpressionAttributeValues={ ":lst": drawings, ":t": '' }
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -335,7 +333,7 @@ def fetch_user_art_canvases(userId):
     response = drawing_table.query(
         ProjectionExpression='drawingId, title, filename',
         KeyConditionExpression=Attr('drawingId').is_in(":lst") & Attr('coloringPage').eq(":t"),
-        ExpressionAttributeValues={ ":lst": drawings, ":t": False }
+        ExpressionAttributeValues={ ":lst": drawings, ":t": '' }
     )
     if ('Items' in response.keys()):
         return response['Items']
