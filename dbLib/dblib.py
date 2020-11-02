@@ -270,7 +270,7 @@ def add_like(drawingId):
 
 def fetch_gallery_all():
     response = drawing_table.scan(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, coloringPage, modified',
         FilterExpression=Attr('published').eq(":t"),
         ExpressionAttributeValues={ ":b": True }
     )
@@ -281,7 +281,7 @@ def fetch_gallery_all():
         
 def fetch_gallery_coloringPages():
     response = drawing_table.scan(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, coloringPage, modified',
         FilterExpression=Attr('published').eq(":t") & Attr('coloringPage').ne(":t"),
         ExpressionAttributeValues={ ":b": True, ":t": '' }
     )
@@ -292,7 +292,7 @@ def fetch_gallery_coloringPages():
         
 def fetch_gallery_canvases():
     response = drawing_table.scan(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, modified',
         FilterExpression=Attr('published').eq(":t") & Attr('coloringPage').eq(":t"),
         ExpressionAttributeValues={ ":b": True, ":t": '' }
     )
@@ -305,7 +305,7 @@ def fetch_user_art_all(userId):
     user = get_user_attr(userId, ['drawings'])
     drawings = user['drawings']
     response = drawing_table.query(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, coloringPage, modified',
         KeyConditionExpression=Attr('drawingId').is_in(":lst"),
         ExpressionAttributeValues={ ":lst": drawings }
     )
@@ -318,7 +318,7 @@ def fetch_user_art_coloringPages(userId):
     user = get_user_attr(userId, ['drawings'])
     drawings = user['drawings']
     response = drawing_table.query(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, coloringPage, modified',
         KeyConditionExpression=Attr('drawingId').is_in(":lst") & Attr('coloringPage').ne(":t"),
         ExpressionAttributeValues={ ":lst": drawings, ":t": '' }
     )
@@ -331,7 +331,7 @@ def fetch_user_art_canvases(userId):
     user = get_user_attr(userId, ['drawings'])
     drawings = user['drawings']
     response = drawing_table.query(
-        ProjectionExpression='drawingId, title, filename',
+        ProjectionExpression='drawingId, title, modified',
         KeyConditionExpression=Attr('drawingId').is_in(":lst") & Attr('coloringPage').eq(":t"),
         ExpressionAttributeValues={ ":lst": drawings, ":t": '' }
     )
