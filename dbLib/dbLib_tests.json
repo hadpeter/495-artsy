@@ -5,20 +5,17 @@
             "description": "Create User and fetch default state of the user: tests create_user and get_user_attr when key exists",
             "user_id": "1",
             "functions": ["create_user"],
-            "args": [["1",{"flow": 10, "volume": 20},0]],
+            "args": [["1"]],
             "expected": {
                 "userId": "1",
                 "coins": 0,
                 "brushes": [],
                 "paints": [],
-                "baseline": {
-                    "flow": 10,
-                    "volume": 20
-                },
-                "history": [],
+                "baseline": 0,
+                "breathCount": 0,
                 "backgrounds": [],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
@@ -40,14 +37,11 @@
                 "coins": 7,
                 "brushes": [],
                 "paints": [],
-                "baseline": {
-                    "flow": 10,
-                    "volume": 20
-                },
-                "history": [],
+                "baseline": 0,
+                "breathCount": 0,
                 "backgrounds": [],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
@@ -61,14 +55,11 @@
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": [],
-                "baseline": {
-                    "flow": 10,
-                    "volume": 20
-                },
-                "history": [],
+                "baseline": 0,
+                "breathCount": 0,
                 "backgrounds": [],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
@@ -82,14 +73,11 @@
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 10,
-                    "volume": 20
-                },
-                "history": [],
+                "baseline": 0,
+                "breathCount": 0,
                 "backgrounds": [],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
@@ -103,14 +91,11 @@
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 10,
-                    "volume": 20
-                },
-                "history": [],
+                "baseline": 0,
+                "breathCount": 0,
                 "backgrounds": ["5", "2", "3"],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
@@ -118,55 +103,62 @@
             "description": "sets baseline of user account",
             "user_id": "1",
             "functions": ["set_baseline"],
-            "args": [["1", 100, 50]],
+            "args": [["1", 10]],
             "expected": {
                 "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 100,
-                    "volume": 50
-                },
-                "history": [],
+                "baseline": 10,
+                "breathCount": 0,
                 "backgrounds": ["5", "2", "3"],
                 "drawings": [],
-                "lastBreath": 0
+                "unlimitedExpiration": 0
             }
         },
         {
             "name": "add_breath",
-            "description": "adds a breath to the history of user account",
+            "description": "adds a breath to the breath count of user account",
             "user_id": "1",
             "functions": ["add_breath", "add_breath", "add_breath"],
-            "args": [["1", 100, 50, 25], ["1", 200, 100, 50], ["1", 120, 140, 75]],
+            "args": [["1"], ["1"], ["1"]],
             "expected": {
                 "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 100,
-                    "volume": 50
-                },
-                "history": [
-                    {
-                        "flow": 100,
-                        "volume": 50
-                    },
-                    {
-                        "flow": 200,
-                        "volume": 100
-                    },
-                    {
-                        "flow": 120,
-                        "volume": 140
-                    }
-                ],
+                "baseline": 10,
+                "breathCount": 3,
                 "backgrounds": ["5", "2", "3"],
                 "drawings": [],
-                "lastBreath": 75
+                "unlimitedExpiration": 0
             }
+        },
+        {
+            "name": "set_unlimited",
+            "description": "adds a breath to the breath count of user account",
+            "user_id": "1",
+            "functions": ["set_unlimited"],
+            "args": [["1", 1000]],
+            "expected": {
+                "userId": "1",
+                "coins": 7,
+                "brushes": ["3", "1"],
+                "paints": ["2", "1", "4"],
+                "baseline": 10,
+                "breathCount": 3,
+                "backgrounds": ["5", "2", "3"],
+                "drawings": [],
+                "unlimitedExpiration": 1000
+            }
+        },
+        {
+            "name": "set_unlimited NOT FOUND",
+            "description": "set unlimited expiration of non-existant user account",
+            "user_id": "5",
+            "functions": ["set_unlimited"],
+            "args": [["5", 1000]],
+            "expected": "None"
         },
         {
             "name": "add_coins NOT FOUND",
@@ -205,15 +197,15 @@
             "description": "sets baseline of non-existant user account",
             "user_id": "5",
             "functions": ["set_baseline"],
-            "args": [["5", 100, 50]],
+            "args": [["5", 100]],
             "expected": "None"
         },
         {
             "name": "add_breath NOT FOUND",
-            "description": "adds a breath to the history of non-existant user account",
+            "description": "adds a breath to the breath count of non-existant user account",
             "user_id": "5",
             "functions": ["add_breath", "add_breath", "add_breath"],
-            "args": [["5", 100, 50, 25], ["5", 200, 100, 50], ["5", 120, 140, 75]],
+            "args": [["5"], ["5"], ["5"]],
             "expected": "None"
         },
         {
@@ -221,33 +213,17 @@
             "description": "Create drawing and makes sure the drawing was added to user's profile",
             "user_id": "1",
             "functions": ["create_drawing"],
-            "args": [["1","2", false, "test", "test.svg", 0]],
+            "args": [["1","2", false, 0]],
             "expected": {
                 "userId": "1",
                 "coins": 7,
                 "brushes": ["3", "1"],
                 "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 100,
-                    "volume": 50
-                },
-                "history": [
-                    {
-                        "flow": 100,
-                        "volume": 50
-                    },
-                    {
-                        "flow": 200,
-                        "volume": 100
-                    },
-                    {
-                        "flow": 120,
-                        "volume": 140
-                    }
-                ],
+                "baseline": 10,
+                "breathCount": 3,
                 "backgrounds": ["5", "2", "3"],
                 "drawings": ["2"],
-                "lastBreath": 75
+                "unlimitedExpiration": 1000
             }
         },
         {
@@ -255,34 +231,8 @@
             "description": "Create a user with existing key",
             "user_id": "1",
             "functions": ["create_user"],
-            "args": [["1",{"flow": 10, "volume": 20},0]],
-            "expected": {
-                "userId": "1",
-                "coins": 7,
-                "brushes": ["3", "1"],
-                "paints": ["2", "1", "4"],
-                "baseline": {
-                    "flow": 100,
-                    "volume": 50
-                },
-                "history": [
-                    {
-                        "flow": 100,
-                        "volume": 50
-                    },
-                    {
-                        "flow": 200,
-                        "volume": 100
-                    },
-                    {
-                        "flow": 120,
-                        "volume": 140
-                    }
-                ],
-                "backgrounds": ["5", "2", "3"],
-                "drawings": ["2"],
-                "lastBreath": 75
-            }
+            "args": [["1"]],
+            "expected": "None"
         }
     ],
     "drawing_tests": [
@@ -291,16 +241,15 @@
             "description": "Create drawing and check drawing default attributes",
             "drawing_id": "1",
             "functions": ["create_drawing"],
-            "args": [["1","1", false, "test", "test.svg", 0]],
+            "args": [["1","1", false, 0]],
             "expected": {
                 "drawingId": "1",
                 "published": false,
                 "modified": 0,
                 "coloringPage": false,
-                "title": "test",
+                "title": "",
                 "likes": 0,
-                "comments": [],
-                "filename": "test.svg"
+                "comments": []
             }
         },
         {
@@ -308,24 +257,15 @@
             "description": "Create drawing and check drawing default attributes",
             "drawing_id": "1",
             "functions": ["create_drawing"],
-            "args": [["1","1", false, "test should fail", "test.svg", 0]],
-            "expected": {
-                "drawingId": "1",
-                "published": false,
-                "modified": 0,
-                "coloringPage": false,
-                "title": "test",
-                "likes": 0,
-                "comments": [],
-                "filename": "test.svg"
-            }
+            "args": [["1","1", false, 0]],
+            "expected": "None"
         },
         {
             "name": "create_drawing USER DOES NOT EXIST",
             "description": "Create drawing and check drawing default attributes",
             "drawing_id": "3",
             "functions": ["create_drawing"],
-            "args": [["4","3", false, "test should fail", "test.svg", 0]],
+            "args": [["4","3", false, 0]],
             "expected": "None"
         },
         {
@@ -339,10 +279,9 @@
                 "published": true,
                 "modified": 0,
                 "coloringPage": false,
-                "title": "test",
+                "title": "",
                 "likes": 0,
-                "comments": [],
-                "filename": "test.svg"
+                "comments": []
             }
         },
         {
@@ -364,10 +303,9 @@
                 "published": false,
                 "modified": 0,
                 "coloringPage": false,
-                "title": "test",
+                "title": "",
                 "likes": 0,
-                "comments": [],
-                "filename": "test.svg"
+                "comments": []
             }
         },
         {
@@ -389,10 +327,9 @@
                 "published": false,
                 "modified": 0,
                 "coloringPage": false,
-                "title": "test",
+                "title": "",
                 "likes": 3,
-                "comments": [],
-                "filename": "test.svg"
+                "comments": []
             }
         },
         {
@@ -402,14 +339,278 @@
             "functions": ["add_like", "add_like", "add_like"],
             "args": [["9"], ["9"], ["9"]],
             "expected": "None"
+        },
+        {
+            "name": "set_title DOES NOT EXIST",
+            "description": "set title of image",
+            "drawing_id": "9",
+            "functions": ["set_title"],
+            "args": [["9", "title"]],
+            "expected": "None"
+        },
+        {
+            "name": "set_title",
+            "description": "set title of image",
+            "drawing_id": "1",
+            "functions": ["set_title"],
+            "args": [["1", "title"]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 0,
+                "coloringPage": false,
+                "title": "title",
+                "likes": 3,
+                "comments": []
+            }
+        },
+        {
+            "name": "update_modified DOES NOT EXIST",
+            "description": "update_modified of image",
+            "drawing_id": "9",
+            "functions": ["update_modified"],
+            "args": [["9", 10]],
+            "expected": "None"
+        },
+        {
+            "name": "update_modified",
+            "description": "update_modified of image",
+            "drawing_id": "1",
+            "functions": ["update_modified"],
+            "args": [["1", 10]],
+            "expected": {
+                "drawingId": "1",
+                "published": false,
+                "modified": 10,
+                "coloringPage": false,
+                "title": "title",
+                "likes": 3,
+                "comments": []
+            }
         }
     ],
     "gallery_tests": {
         "setup": {
-            "functions": [],
-            "args": []
+            "functions": ["create_user", "create_drawing", "create_drawing", "create_drawing", "create_user", "create_drawing", "create_drawing", "create_drawing", "create_user", "publish_drawing", "publish_drawing", "publish_drawing", "publish_drawing", "publish_drawing", "publish_drawing"],
+            "args": [["10"],["10","10", "", 0],["10","11", "1", 0],["10","12", "2", 0], ["20"],["20","20", "", 0],["20","21", "1", 0],["20","22", "2", 0], ["30"], ["10"], ["11"], ["12"], ["20"],[ "21"], ["22"]]
         },
         "tests": [
+            {
+                "name": "fetch_user_art_canvases NO DRAWINGS",
+                "description": "get user art drawings",
+                "functions": ["fetch_user_art_canvases"],
+                "args": [["30"]],
+                "expected": []
+            },
+            {
+                "name": "fetch_user_art_coloringPages NO DRAWINGS",
+                "description": "get user art coloringPages",
+                "functions": ["fetch_user_art_coloringPages"],
+                "args": [["30"]],
+                "expected": []
+            },
+            {
+                "name": "fetch_user_art_all NO DRAWINGS",
+                "description": "get user art all",
+                "functions": ["fetch_user_art_all"],
+                "args": [["30"]],
+                "expected": []
+            },
+            {
+                "name": "fetch_user_art_canvases",
+                "description": "get user art drawings",
+                "functions": ["fetch_user_art_canvases"],
+                "args": [["10"]],
+                "expected": [
+                    {
+                        "drawingId": "10",
+                        "modified": 0,
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_user_art_coloringPages",
+                "description": "get user art coloring pages",
+                "functions": ["fetch_user_art_coloringPages"],
+                "args": [["10"]],
+                "expected": [
+                    {
+                        "drawingId": "12",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "11",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_user_art_all",
+                "description": "get user art all",
+                "functions": ["fetch_user_art_all"],
+                "args": [["10"]],
+                "expected": [
+                    {
+                        "drawingId": "12",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "11",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "10",
+                        "modified": 0,
+                        "coloringPage": "",
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_user_art_canvases USER DOES NOT EXIST",
+                "description": "get user art drawings when user doesn't exist",
+                "functions": ["fetch_user_art_canvases"],
+                "args": [["11"]],
+                "expected": "None"
+            },
+            {
+                "name": "fetch_user_art_coloringPages USER DOES NOT EXIST",
+                "description": "get user art coloring pages when user doesn't exist",
+                "functions": ["fetch_user_art_coloringPages"],
+                "args": [["11"]],
+                "expected": "None"
+            },
+            {
+                "name": "fetch_user_art_all USER DOES NOT EXIST",
+                "description": "get user art all when user doesn't exist",
+                "functions": ["fetch_user_art_all"],
+                "args": [["11"]],
+                "expected": "None"
+            },
+            {
+                "name": "fetch_gallery_all",
+                "description": "get gallery art all",
+                "functions": ["fetch_gallery_all"],
+                "args": [[]],
+                "expected": [
+                    {
+                        "drawingId": "21",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "12",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "22",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "11",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "20",
+                        "modified": 0,
+                        "coloringPage": "",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "10",
+                        "modified": 0,
+                        "coloringPage": "",
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_gallery_canvases",
+                "description": "get gallery art canvases",
+                "functions": ["fetch_gallery_canvases"],
+                "args": [[]],
+                "expected": [
+                    {
+                        "drawingId": "20",
+                        "modified": 0,
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "10",
+                        "modified": 0,
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_gallery_coloringPages",
+                "description": "get gallery art coloringPages",
+                "functions": ["fetch_gallery_coloringPages"],
+                "args": [[]],
+                "expected": [
+                    {
+                        "drawingId": "21",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "12",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "22",
+                        "modified": 0,
+                        "coloringPage": "2",
+                        "title": ""
+                    },
+                    {
+                        "drawingId": "11",
+                        "modified": 0,
+                        "coloringPage": "1",
+                        "title": ""
+                    }
+                ]
+            },
+            {
+                "name": "fetch_gallery_all NO DRAWINGS",
+                "description": "get gallery art when none published",
+                "functions": ["unpublish_drawing", "unpublish_drawing", "unpublish_drawing", "unpublish_drawing", "unpublish_drawing", "unpublish_drawing", "fetch_gallery_all"],
+                "args": [["10"], ["11"], ["12"], ["20"], ["21"], ["22"],[]],
+                "expected": []
+            },
+            {
+                "name": "fetch_gallery_canvases NO DRAWINGS",
+                "description": "get gallery art when none published",
+                "functions": ["fetch_gallery_canvases"],
+                "args": [[]],
+                "expected": []
+            },
+            {
+                "name": "fetch_gallery_coloringPages NO DRAWINGS",
+                "description": "get gallery art when none published",
+                "functions": ["fetch_gallery_coloringPages"],
+                "args": [[]],
+                "expected": []
+            }
         ]
     }
 }
