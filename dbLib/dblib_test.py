@@ -14,12 +14,15 @@ function_map = {
     "add_background": add_background,
     "set_baseline": set_baseline,
     "add_breath": add_breath,
+    "set_unlimited": set_unlimited,
     "create_drawing": create_drawing,
     "delete_drawing": delete_drawing,
     "get_drawing_attr": get_drawing_attr,
     "publish_drawing": publish_drawing,
     "unpublish_drawing": unpublish_drawing,
     "add_like": add_like,
+    "set_title": set_title,
+    "update_modified": update_modified,
     "fetch_gallery_all": fetch_gallery_all,
     "fetch_gallery_coloringPages": fetch_gallery_coloringPages,
     "fetch_gallery_canvases": fetch_gallery_canvases,
@@ -41,7 +44,7 @@ def compare(actual, expected):
     pp = pprint.PrettyPrinter(indent=2)
     return pp.pformat(expected), pp.pformat(actual)
 
-def report(passed, test, result):
+def report(passed, test, result={}):
     output = f'TEST::{test["name"]}{"."*25}{GREEN("PASS") if passed else RED("FAIL")}'
     if passed:
         print(output)
@@ -51,7 +54,7 @@ def report(passed, test, result):
         print(output)
 
 def check_user_result(test):
-    attrs = ['userId', 'baseline', 'coins', 'history', 'brushes', 'paints', 'backgrounds', 'drawings', 'lastBreath']
+    attrs = ['userId', 'baseline', 'coins', 'breathCount', 'brushes', 'paints', 'backgrounds', 'drawings', 'unlimitedExpiration']
     result = get_user_attr(test['user_id'], attrs)
     if result is None:
         if test['expected'] == "None":
@@ -149,20 +152,35 @@ def set_up_gallery_tests(tests):
 def test(tests):
     results = [0, 0]
     for test in tests['user_tests']:
-        result = execute_user_test(test)
+        try:
+            result = execute_user_test(test)
+        except DatabaseException as e:
+            if test["expected"] != "None":
+                raise e
+            report(True, test)
         if result:
             results[0] += 1
         else:
             results[1] += 1
     for test in tests['drawing_tests']:
-        result = execute_drawing_test(test)
+        try:
+            result = execute_drawing_test(test)
+        except DatabaseException as e:
+            if test["expected"] != "None":
+                raise e
+            report(True, test)
         if result:
             results[0] += 1
         else:
             results[1] += 1
     set_up_gallery_tests(tests)
     for test in tests['gallery_tests']['tests']:
-        result = execute_gallery_test(test)
+        try:
+            result = execute_gallery_test(test)
+        except DatabaseException as e:
+            if test["expected"] != "None":
+                raise e
+            report(True, test)
         if result:
             results[0] += 1
         else:
