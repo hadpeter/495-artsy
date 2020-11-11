@@ -8,17 +8,14 @@ def lambda_handler(event, context):
     location = 'artsy-bucket'
     desired_object = 'IMG_3192.jpeg'
     s3 = boto3.client('s3')
-    #contents = s3.list_objects_v2(Bucket=location)
     url = s3.generate_presigned_url('get_object', Params = {'Bucket': location, 'Key': desired_object}, ExpiresIn = 100)
-    print(url)
-    #url = create_presigned_url('BUCKET_NAME', '')
-    if url is not None:
-        response = requests.get(url)
-        print("Got response")
-        print(response)
+    #contents = s3.list_objects_v2(Bucket=location)
+    #if url is not None:
+        #response = requests.get(url)
+        #print("Got response")
+        #print(response)
     
-    #print(contents)
-    print("results")
+   # print(contents)
     # generate signed url
     signed_url = "testing"
     return {
