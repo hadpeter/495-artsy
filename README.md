@@ -25,3 +25,8 @@ Our REST API will be deployed on an AWS API Gateway instance, making our backend
 
 ## Required installations
 1. pip install requests
+
+## Creating the deployment package
+1. Install dependencies 'pip3 install --target ./package requests'
+2. Create the deployment package by moving into the package directory. Be sure to have the lambda_function.py file in this directory. Run the command 'zip -r package.zip ./*'
+3. In the lambda console select upload zip and select the zip file from your local file tree
