@@ -10,6 +10,7 @@ def lambda_handler(event, context):
     s3 = boto3.client('s3')
     #contents = s3.list_objects_v2(Bucket=location)
     url = s3.generate_presigned_url('get_object', Params = {'Bucket': location, 'Key': desired_object}, ExpiresIn = 100)
+    print(url)
     #url = create_presigned_url('BUCKET_NAME', '')
     if url is not None:
         response = requests.get(url)
@@ -22,7 +23,7 @@ def lambda_handler(event, context):
     signed_url = "testing"
     return {
         'statusCode': 200,
-        'body': json.dumps(signed_url)
+        'body': json.dumps(url)
     }
     
 def upload_file():
