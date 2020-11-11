@@ -4,7 +4,7 @@ from s3lib import imgURL as signedURL
 
 def image_object(img):
     return {
-        "imageUrl": signedURL(img['drawingId'])
+        "imageUrl": signedURL(img['drawingId']) #TODO: create path
         "title": img['title']
     }
     
