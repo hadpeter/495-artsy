@@ -5,8 +5,8 @@ import requests
 
 def lambda_handler(event, context):
     # construct location based on the api call and s3 folder structure
-    location = 'arn:aws:s3:::artsy-bucket/backgrounds/svg/'
-    desired_object = '01.svg'
+    location = 'artsy-bucket'
+    desired_object = 'IMG_3192.jpeg'
     s3 = boto3.client('s3')
     #contents = s3.list_objects_v2(Bucket=location)
     url = s3.generate_presigned_url('get_object', Params = {'Bucket': location, 'Key': desired_object}, ExpiresIn = 100)
