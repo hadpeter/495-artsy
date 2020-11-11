@@ -22,3 +22,6 @@ Our REST API will be deployed on an AWS API Gateway instance, making our backend
 2. Select the artsy-backend bucket
 3. Under Overview select the upload bucket
 4. Select the file(s) and click upload
+
+## Required installations
+1. pip install requests
