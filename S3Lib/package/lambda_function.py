@@ -23,13 +23,13 @@ def upload_file(input_img):
     #error handling
     if response is None:
         exit(1)
-    print(response)
-    # how the api will use the url to make a post
-    with open(obj_name, 'rb') as i:
-        files = {'file': (object_name, i)}
-        http_response = requests.post(response['url'], data=response['fields'], files=files)
-    print('http status code: {http_response.status_code}')
-    return ""
+    print(response['url'])
+    # outline of how the api will use the url to make a post
+    # with open(obj_name, 'rb') as i:
+        # files = {'file': (object_name, i)}
+         # http_response = requests.post(response['url'], data=response['fields'], files=files)
+    # print('http status code: {http_response.status_code}')
+    return response
 
 def get_file():
     # construct location based on the api call and s3 folder structure
