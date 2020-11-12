@@ -4,31 +4,40 @@ import requests
 
 
 def lambda_handler(event, context):
-    # construct location based on the api call and s3 folder structure
-    location = 'artsy-bucket'
-    desired_object = 'IMG_3192.jpeg'
-    s3 = boto3.client('s3')
-    url = s3.generate_presigned_url('get_object', Params = {'Bucket': location, 'Key': desired_object}, ExpiresIn = 100)
-    #contents = s3.list_objects_v2(Bucket=location)
-    #if url is not None:
-        #response = requests.get(url)
-        #print("Got response")
-        #print(response)
+    print(context)
+    print("event")
     
-   # print(contents)
-    # generate signed url
-    signed_url = "testing"
+    # get_url = get_file()
+    post_url = upload_file(event['img'])
     return {
         'statusCode': 200,
-        'body': json.dumps(url)
+        'body': json.dumps(post_url)
     }
     
-def upload_file():
-    object_name = 'OBJECT_NAME'
-    response = create_presigned_post('BUCKET_NAME', object_name)
+def upload_file(input_img):
+    # to generate url that can be used to make a post to the s3 bucket
+    bucket_name = 'artsy-bucket'
+    obj_name = input_img
+    s3 = boto3.client('s3')
+    response = s3.generate_presigned_post(bucket_name, obj_name)
+    #error handling
     if response is None:
         exit(1)
-    with open(object_name, 'rb') as f:
-        files = {'file': (object_name, f)}
+    print(response)
+    # how the api will use the url to make a post
+    with open(obj_name, 'rb') as i:
+        files = {'file': (object_name, i)}
         http_response = requests.post(response['url'], data=response['fields'], files=files)
-    logging.info(f'http status code: {http_response.status_code}')
+    print('http status code: {http_response.status_code}')
+    return ""
+
+def get_file():
+    # construct location based on the api call and s3 folder structure
+    bucket_name = 'artsy-bucket'
+    desired_object = 'IMG_3192.jpeg'
+    s3 = boto3.client('s3')
+    url = s3.generate_presigned_url('get_object', Params = {'Bucket': bucket_name, 'Key': desired_object}, ExpiresIn = 100)
+    if url is None:
+        print("failure generating presigned url")
+        exit(1)
+    return url
