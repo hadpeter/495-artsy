@@ -1,5 +1,5 @@
 import json
-from dbLib.dblib import *
+from dblib import *
 
 def get_user_info(event, context):
     userId = event['headers']['userId']
