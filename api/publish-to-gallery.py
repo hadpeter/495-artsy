@@ -1,5 +1,5 @@
 import json
-from dblib import *
+from dbLib.dblib import *
 
 def get_user_info(event, context):
     drawingId = event['headers']['drawingId']

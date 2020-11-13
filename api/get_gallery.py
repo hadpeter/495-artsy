@@ -1,10 +1,10 @@
 import json
-from dblib import *
-from s3lib import imgURL as signedURL
+from dbLib.dblib import *
+from S3Lib.s3_lib import get_file as signedURL
 
 def image_object(img):
     return {
-        "imageUrl": signedURL(img['drawingId']) #TODO: create path
+        "imageUrl": signedURL(f'drawings/{img['drawingId']}.png')
         "title": img['title']
     }
     
