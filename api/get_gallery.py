@@ -3,8 +3,9 @@ from dbLib.dblib import *
 from S3Lib.s3_lib import get_file as signedURL
 
 def image_object(img):
+    userId = img['drawingId'].split('-')[0]
     return {
-        "imageUrl": signedURL(f'drawings/{img['drawingId']}.png')
+        "imageUrl": signedURL(f'drawings/{userId}/{img['drawingId']}.png')
         "title": img['title']
     }
     
