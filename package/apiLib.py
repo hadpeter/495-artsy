@@ -5,7 +5,7 @@ import time
 import s3_lib
 
 
-def get-user-info(event):
+def get_user_info(event):
 	userId = event['headers']['userId']
     attrs = ["userId", "coins", "brushes", "paints", "baseline", "breathCount", "backgrounds", "drawings", "unlimitedExpiration"]
     user_info = get_user_attr(userId, attrs)
@@ -15,7 +15,7 @@ def get-user-info(event):
     }
 
 
-def get-user-art(event):
+def get_user_art(event):
 	userId = event["queryStringParameters"]["userId"]
 	data = fetch_user_art_all(userId)
 	canvas = []
@@ -23,14 +23,14 @@ def get-user-art(event):
 
 	for drawing in data:
 		new_item = {
-			"png": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.png'),
-			"svg": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.svg'),
+			"png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.png'),
+			"svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.svg'),
 			"drawingId": drawing["drawingId"],
 			"time": drawing["modified"]
 		}
 
 		if drawing["coloringPage"]:
-			new_item['templateUrl'] = s3_lib.getfile('artsy-bucket', f'backgrounds/{img['drawingId']}.png')
+			new_item['templateUrl'] = s3_lib.get_file('artsy-bucket', f'backgrounds/{img['drawingId']}.png')
 			template.append(new_item)
 		else:
 			canvas.append(new_item)
@@ -46,7 +46,7 @@ def get-user-art(event):
 	}
 
 
-def create-user(event):
+def create_user(event):
 	userId = event["queryStringParameters"]['deviceId'] + "-" + str(time.time_ns())
     baseline = { "flow":10, "volume":20 }
     create_user(userId, baseline, int(time.time()) )
@@ -57,13 +57,13 @@ def create-user(event):
     }
 
 
-def get-drawing(event):
+def get_drawing(event):
 	drawingId = event["queryStringParameters"]['drawingId']
 	userId = img['drawingId'].split('-')[0]
 
 	response = {
-		"png": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{drawingId}.png'),
-		"svg": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{drawingId}.svg')
+		"png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawingId}.png'),
+		"svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawingId}.svg')
 	}
 
 	return {
@@ -72,22 +72,22 @@ def get-drawing(event):
     }
 
 
-def get-templates(event):
-	templates = {str(n).zfill(2):s3_lib.getfile(f'backgrounds/png/{str(n).zfill(2)}.png') for n in range(27)}
+def get_templates(event):
+    templates = {str(n).zfill(2):s3_lib.get_file('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png') for n in range(1, 27) }
     return {
         'statusCode': 200,
         'body': json.dumps(templates)
     }
 
 
-def create-drawing(event):
+def create_drawing(event):
 	create_drawing(event['userId'],create_id(event['userId']),event['template'],time.time_ns())
     return {
         'statusCode': 200,
         'body': str(type(drawingIds))
     }
 
-def save-drawing(event):
+def save_drawing(event):
 	response = s3_lib('artsy-bucket',event['drawingId'])
     set_title(event['drawingId'],event['title'])
     return {
@@ -98,7 +98,7 @@ def save-drawing(event):
     }
 
 
-def purchase-brush(event):
+def purchase_brush(event):
     userId = event['headers']['userId']
     brushId = event['headers']['brushId']
     cost = event['headers']['cost']
@@ -109,7 +109,7 @@ def purchase-brush(event):
     }
 
 
-def purchase-paint(event):
+def purchase_paint(event):
 	userId = event['headers']['paintId']
     paintId = event['headers']['paintId']
     cost = event['headers']['cost']
@@ -120,7 +120,7 @@ def purchase-paint(event):
     }
 
 
-def purchase-background(event):
+def purchase_background(event):
 	userId = event['headers']['userId']
     backgroundId = event['headers']['backgroundId']
     cost = event['headers']['cost']
@@ -130,7 +130,7 @@ def purchase-background(event):
         'statusCode': 200,
     }
 
-def get-gallery(event):
+def get_gallery(event):
 	canvases = fetch_gallery_canvases()
     canvases = sorted(canvases, key = lambda i: i['modified'],reverse=True)
     canvases = map(image_object, canvases)
@@ -147,7 +147,7 @@ def get-gallery(event):
     }
 
 
-def publish-to-gallery(event):
+def publish_to_gallery(event):
 	drawingId = event['headers']['drawingId']
     title = event['headers']['title']
     set_title(drawingId, title)
@@ -156,7 +156,7 @@ def publish-to-gallery(event):
         'statusCode': 200
     }
 
-def add-breath(event):
+def add_breath(event):
 	score = compute_score(event['flow'],event['volume'])
     baseline = get_user_attr(event['userId'], ["baseline"])['baseline']
     #LOWBAR = 0.4
@@ -188,7 +188,7 @@ def create_id(userId):
 def image_object(img):
     userId = img['drawingId'].split('-')[0]
     return {
-        "imageUrl": signedURL(f'drawings/{userId}/{img['drawingId']}.png')
+        "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{img['drawingId']}.png')
         "title": img['title']
     }
 
@@ -197,17 +197,17 @@ def compute_score(flow,volume):
     return random.randint(50,50)
 
 apiDict = {
-	"get-user-info": get-user-info,
-	"get-user-art": get-user-art,
-	"create-user": create-user,
-	"get-drawing": get-drawing,
-	"get-templates": get-templates,
-	"create-drawing": create-drawing,
-	"save-drawing": save-drawing,
-	"purchase-brush": purchase-brush,
-	"purchase-paint": purchase-paint,
-	"purchase-background": purchase-background,
-	"get-gallery": get-gallery,
-	"publish-to-gallery": publish-to-gallery,
-	"add-breath": add-breath
+	"get-user-info": get_user_info,
+	"get-user-art": get_user_art,
+	"create-user": create_user,
+	"get-drawing": get_drawing,
+	"get-templates": get_templates,
+	"create-drawing": create_drawing,
+	"save-drawing": save_drawing,
+	"purchase-brush": purchase_brush,
+	"purchase-paint": purchase_paint,
+	"purchase-background": purchase_background,
+	"get-gallery": get_gallery,
+	"publish-to-gallery": publish_to_gallery,
+	"add-breath": add_breath
 }
