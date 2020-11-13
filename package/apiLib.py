@@ -72,8 +72,8 @@ def get-drawing(event):
     }
 
 
-def get-templates(event):
-	templates = {str(n).zfill(2):s3_lib.getfile(f'backgrounds/png/{str(n).zfill(2)}.png') for n in range(27)}
+def get_templates(event):
+    templates = {str(n).zfill(2):s3_lib.getfile('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png') for n in range(1, 27) }
     return {
         'statusCode': 200,
         'body': json.dumps(templates)
@@ -188,7 +188,7 @@ def create_id(userId):
 def image_object(img):
     userId = img['drawingId'].split('-')[0]
     return {
-        "imageUrl": signedURL(f'drawings/{userId}/{img['drawingId']}.png')
+        "imageUrl": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{img['drawingId']}.png')
         "title": img['title']
     }
 
