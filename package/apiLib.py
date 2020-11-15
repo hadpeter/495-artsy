@@ -206,13 +206,11 @@ def create_id(userId):
 
 def image_object(img):
     userId = img['drawingId'].split('-')[0]
-
-    response = {
-        "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{img["drawingId"]}.png'),
+    return {
+        "imageUrl": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{img['drawingId']}.png'),
         "title": img['title']
     }
-    
-    return response
+   
 
 def compute_score(flow,volume):
     #TODO implement something that actually analyses volume and flow
