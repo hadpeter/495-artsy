@@ -138,13 +138,17 @@ def set_baseline(userId, val):
         
 def add_breath(userId):
     try:
+        count = user_table.get_item(
+            Key={'userId': userId},
+            ProjectionExpression='breathCount'
+        )['Item']['breathCount']
         user_table.update_item(
             Key={
                 'userId': userId
             },
-            UpdateExpression='ADD breathCount :b',
+            UpdateExpression='SET breathCount = :b',
             ConditionExpression=Attr('userId').eq(userId),
-            ExpressionAttributeValues={ ":b": 1 }
+            ExpressionAttributeValues={ ":b": count%10+1 }
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
