@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 import boto3
 from dblib import *
@@ -29,8 +30,8 @@ def get_user_art(event):
 
     for drawing in data:
         new_item = {
-            "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.png'),
-            "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawing["drawingId"]}.svg'),
+            "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawing["drawingId"]}.png'),
+            "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawing["drawingId"]}.svg'),
             "drawingId": drawing["drawingId"],
             "time": int(drawing["modified"])
         }
@@ -40,7 +41,6 @@ def get_user_art(event):
             template.append(new_item)
         else:
             canvas.append(new_item)
-
     response = {
         "canvas": canvas,
         "template": template
@@ -64,11 +64,11 @@ def api_create_user(event):
 
 def get_drawing(event):
     drawingId = event["headers"]['drawingId']
-    userId = event['headers']['drawingId'].split('-')[0]
+    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
 
     response = {
-        "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawingId}.png'),
-        "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/{drawingId}.svg')
+        "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
+        "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
     }
 
     return {
@@ -78,10 +78,13 @@ def get_drawing(event):
 
 
 def get_templates(event):
-    templates = {str(n).zfill(2):s3_lib.get_file('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png') for n in range(1, 27) }
+    response = {
+            "templates": [{"title": str(n).zfill(2), "url": s3_lib.get_file('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png')} for n in range(1, 27) ]
+    }
+
     return {
         'statusCode': 200,
-        'body': json.dumps(templates)
+        'body': json.dumps(response)
     }
 
 def api_create_drawing(event):
@@ -97,14 +100,14 @@ def api_create_drawing(event):
 
 def save_drawing(event):
     drawingId = event["headers"]['drawingId']
-    userId = event["headers"]['drawingId'].split('-')[0]
-    
+    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
+
     if "title" in event["headers"]:
         set_title(event["headers"]['drawingId'],event["headers"]['title'])
 
     response = {
-        "png": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/{drawingId}.png'),
-        "svg": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/{drawingId}.svg')
+        "png": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
+        "svg": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
     }
     
     return {
@@ -176,8 +179,8 @@ def api_add_breath(event):
     baseline = get_user_attr(event['headers']['userId'], ["baseline"])['baseline']
     #LOWBAR = 0.4
     LOWBAR = 0 #TEST VALUE
-    #UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
-    UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
+    UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
+    #UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
     
     if(score > LOWBAR*baseline):
         if(get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']<time.time_ns()):
@@ -205,12 +208,14 @@ def create_id(userId):
     return str(userId) + '-' + str(time.time_ns())
 
 def image_object(img):
-    userId = img['drawingId'].split('-')[0]
-    return {
-        "imageUrl": s3_lib.getfile('artsy-bucket', f'drawings/{userId}/{img['drawingId']}.png'),
+    userId = '-'.join(img['drawingId'].split('-')[0:2])
+
+    response = {
+        "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{img["drawingId"]}.png'),
         "title": img['title']
     }
-   
+    
+    return response
 
 def compute_score(flow,volume):
     #TODO implement something that actually analyses volume and flow
@@ -225,7 +230,7 @@ apiDict = {
     "create-drawing": api_create_drawing,
     "save-drawing": save_drawing,
     "purchase-brush": purchase_brush,
-    "purchase-paint": purchase_paint,
+    "purchase-palette": purchase_paint,
     "purchase-background": purchase_background,
     "get-gallery": get_gallery,
     "publish-to-gallery": publish_to_gallery,
