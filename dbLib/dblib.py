@@ -2,14 +2,13 @@ import boto3
 import botocore
 from boto3.dynamodb.conditions import Key, Attr
 
-dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
+dynamodb = boto3.resource('dynamodb')
 
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
-
     Attributes:
         function -- function error occured in
         message -- explanation of the error
@@ -138,13 +137,17 @@ def set_baseline(userId, val):
         
 def add_breath(userId):
     try:
+        count = user_table.get_item(
+            Key={'userId': userId},
+            ProjectionExpression='breathCount'
+        )['Item']['breathCount']
         user_table.update_item(
             Key={
                 'userId': userId
             },
-            UpdateExpression='ADD breathCount :b',
+            UpdateExpression='SET breathCount = :b',
             ConditionExpression=Attr('userId').eq(userId),
-            ExpressionAttributeValues={ ":b": 1 }
+            ExpressionAttributeValues={ ":b": count%10+1 }
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
@@ -372,4 +375,4 @@ def fetch_user_art_canvases(userId):
         return response['Items']
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
-    
+ 
