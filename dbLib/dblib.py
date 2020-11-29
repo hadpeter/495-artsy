@@ -375,4 +375,29 @@ def fetch_user_art_canvases(userId):
         return response['Items']
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
+
+def add_tag(drawingId, tag):
+     try:
+        drawing_table.update_item(
+            Key={
+                'drawingId': drawingId
+            },
+            UpdateExpression='SET tags = list_append(tags, :i)',
+            ExpressionAttributeValues={ ":i": [tag] }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("add_tag", "drawingId does not exist")
+
+
+def get_tag(drawingID):
+    response = drawing_table.get_item(
+        Key={'drawingId': drawingId},
+        ProjectionExpression='drawingId, title, modified, tags',
+    )
+    if ('Item' in response.keys()):
+        return response['Item']
+    else:
+        raise DatabaseException("get_tag", "drawingId does not exist")
  
