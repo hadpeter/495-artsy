@@ -53,13 +53,22 @@ def get_user_art(event):
 
 
 def api_create_user(event):
-    
+    deviceId = event["headers"]["deviceId"]
     userId = event["headers"]["deviceId"] + "-" + str(time.time_ns())
-    create_user(userId)
+    create_user(deviceId, userId)
     return {
         'statusCode': 200,
         'body': json.dumps(userId)
     }
+
+def api_get_user_id(event):
+    deviceId = event["headers"]["deviceId"]
+    userId = get_user_id(deviceId)
+    return {
+        'statusCode': 200,
+        'body': json.dumps(userId)
+    }
+    
 
 
 def get_drawing(event):
