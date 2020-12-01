@@ -1,3 +1,4 @@
+import math
 import boto3
 import botocore
 from boto3.dynamodb.conditions import Key, Attr
@@ -39,6 +40,9 @@ def create_user(userId):
                 'breathCount': 0,
                 'backgrounds': [],
                 'drawings': [],
+                'flows': [],
+                'volumes': [],
+                'timestamps': [],
                 'unlimitedExpiration': 0
             },
             ConditionExpression=Attr('userId').not_exists()
@@ -58,7 +62,6 @@ def get_user_attr(userId, attrs):
         return response['Item']
     else:
         raise DatabaseException("get_user_attr", "userId does not exist")
-    
     
 def add_coins(userId, coins):
     try:
@@ -119,6 +122,21 @@ def add_background(userId, backgroundId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_background", "userId does not exist")
+
+def add_raw_breath(userId, breath):
+    try:
+        user_table.update_item(
+            Key={
+                'userId': userId
+            },
+            UpdateExpression='SET breathHistory = list_append(breathHistory, :b)',
+            ConditionExpression=Attr('userId').eq(userId),
+            ExpressionAttributeValues={ ":b": [breath] }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("add_brush", "userId does not exist")
         
 def set_baseline(userId, val):
     try:
