@@ -202,6 +202,22 @@ def api_add_breath(event):
         'body': json.dumps(response)
     }
 
+def get_tags(event, context):
+    drawingId = event['headers']['drawingId']
+    tags = get_drawing_tags(drawingId)
+    return {
+        'statusCode': 200,
+        'body': json.dumps(tags)
+    }
+
+def add_tag(event, context):
+    drawingId = event['headers']['drawingId']
+    tag = event['headers']['drawingId']
+    add_drawing_tag(drawingId, tag)
+    return {
+        'statusCode': 200
+    }
+
 
 #Helper functions
 def create_id(userId):
