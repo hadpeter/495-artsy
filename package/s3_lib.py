@@ -1,6 +1,7 @@
 import json
 import boto3
 import requests
+import base64
 
     
 # bucket_name should be 'artsy-bucket' and the obj_name should specify the object
@@ -23,6 +24,17 @@ def get_file(bucket_name , obj_name):
         print("failure generating presigned url")
         raise Exception
     return url
+
+def saveDrawing(event, drawingId):
+    userId = '-'.join(drawingId.split('-')[0:2])
+    file_type = event["image-type"]
+    file_content = base64.b64decode(event['content'])
+    file_path = f'drawings/{userId}/{file_type}/{drawingId}.{file_type}'
+    s3 = boto3.client('s3')
+    try:
+        s3_response = s3.put_object(Bucket='artsy-bucket', Key=file_path, Body=file_content)
+    except Exception as e:
+        raise IOError(e)
 
 ## Additional notes on usage
 # for the url generated bu upload_file that is returned to the frontend, a post should be 

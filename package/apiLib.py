@@ -4,6 +4,7 @@ import boto3
 from dblib import *
 import time
 import s3_lib
+import email_lib
 
 def get_user_info(event):
     userId = event['headers']['userId']
@@ -67,7 +68,7 @@ def api_get_user_id(event):
         'statusCode': 200,
         'body': json.dumps(userId)
     }
-    
+
 
 
 def get_drawing(event):
@@ -107,20 +108,19 @@ def api_create_drawing(event):
     }
 
 def save_drawing(event):
-    drawingId = event["headers"]['drawingId']
-    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
+    headers = event['params']['header']
+    drawingId = headers['drawingId']
+    userId = '-'.join(drawingId.split('-')[0:2])
 
-    if "title" in event["headers"]:
-        set_title(event["headers"]['drawingId'],event["headers"]['title'])
+    update_modified(drawingId, time.time_ns())
 
-    response = {
-        "png": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
-        "svg": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
-    }
+    if "title" in headers:
+        set_title(drawingId, headers['title'])
+
+    s3_lib.saveDrawing(event, drawingId)
     
     return {
-        'statusCode': 200,
-        'body': json.dumps(response)
+        'statusCode': 200
     }
 
 
@@ -213,6 +213,16 @@ def api_add_breath(event):
         'body': json.dumps(response)
     }
 
+def send_drawing(event):
+    drawingId = event["headers"]['drawingId']
+    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
+    url = s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png')
+    addr = event["headers"]['address']
+    email_lib.generateEmail(addr, url)
+    return {
+        'statusCode': 200
+    }
+
 def get_tags(event, context):
     drawingId = event['headers']['drawingId']
     tags = get_drawing_tags(drawingId)
@@ -277,5 +287,6 @@ apiDict = {
     "purchase-background": purchase_background,
     "get-gallery": get_gallery,
     "publish-to-gallery": publish_to_gallery,
-    "add-breath": api_add_breath
+    "add-breath": api_add_breath,
+    "send-drawing": send_drawing
 }
