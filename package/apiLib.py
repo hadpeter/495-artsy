@@ -31,7 +31,7 @@ def get_user_art(event):
     for drawing in data:
         new_item = {
             "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawing["drawingId"]}.png'),
-            "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawing["drawingId"]}.svg'),
+            "dat": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/dat/{drawing["drawingId"]}.dat'),
             "drawingId": drawing["drawingId"],
             "time": int(drawing["modified"])
         }
@@ -77,7 +77,7 @@ def get_drawing(event):
 
     response = {
         "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
-        "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
+        "dat": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/dat/{drawingId}.dat')
     }
 
     return {
@@ -239,6 +239,13 @@ def add_tag(event, context):
         'statusCode': 200
     }
 
+def export_data():
+    data = export_breath_data()
+    return {
+        'statusCode': 200,
+        'body': json.dumps(data)
+    }
+
 
 #Helper functions
 def create_id(userId):
@@ -249,7 +256,8 @@ def image_object(img):
 
     response = {
         "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{img["drawingId"]}.png'),
-        "title": img['title']
+        "title": img['title'],
+        "drawingId": img['drawingId']
     }
     
     return response

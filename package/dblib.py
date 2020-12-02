@@ -207,8 +207,16 @@ def set_unlimited(userId, time):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("set_unlimited", "userId does not exist")
-    
-    
+
+
+def export_breath_data():
+    response = user_table.scan(
+        ProjectionExpression='userId, breathHistory',
+    )
+    if ('Items' in response.keys()):
+        return response['Items']
+    else:
+        return []
     
 ##########################################################
 ############                              ################
