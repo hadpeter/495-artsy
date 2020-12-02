@@ -249,7 +249,8 @@ def image_object(img):
 
     response = {
         "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{img["drawingId"]}.png'),
-        "title": img['title']
+        "title": img['title'],
+        "drawingId": img['drawingId']
     }
     
     return response
