@@ -250,9 +250,9 @@ def compute_score(flow,volume):
     length = len(flow)
     score = 0
     if(length<10):
-        score = 52.0/(1+math.exp(-.39*(length-10)))
+        score = 20.0/(1+math.exp(-.47*(length-10)))
     else:
-        score = 50.0/(1+math.exp(-.15*(length-10)))
+        score = 50.0/(1+math.exp(-.187*(length-10)))-15.0
     numerator = 0.0
     denominator = 0.0
     index = 0
@@ -262,7 +262,7 @@ def compute_score(flow,volume):
         index = flow[x]
     if denominator == 0:
         denominator = 1
-    return int(2*score*numerator/denominator)
+    return int(2.5*score*numerator/denominator)
 
 apiDict = {
     "get-user-info": get_user_info,
