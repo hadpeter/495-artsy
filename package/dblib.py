@@ -1,4 +1,3 @@
-import math
 import boto3
 import botocore
 from boto3.dynamodb.conditions import Key, Attr
@@ -84,7 +83,7 @@ def get_user_attr(userId, attrs):
         return response['Item']
     else:
         raise DatabaseException("get_user_attr", "userId does not exist")
-    
+
 def add_coins(userId, coins):
     try:
         user_table.update_item(
@@ -159,7 +158,7 @@ def add_raw_breath(userId, breath):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_brush", "userId does not exist")
-        
+
 def set_baseline(userId, val):
     try:
         user_table.update_item(
@@ -193,7 +192,7 @@ def add_breath(userId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_breath", "userId does not exist")
-        
+
 def set_unlimited(userId, time):
     try:
         user_table.update_item(
@@ -417,7 +416,8 @@ def fetch_user_art_canvases(userId):
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
 
 def add_drawing_tag(drawingId, tag):
+    pass
 
 
 def get_drawing_tags(drawingID):
- 
+    pass
