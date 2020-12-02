@@ -1,3 +1,4 @@
+import math
 import boto3
 import botocore
 from boto3.dynamodb.conditions import Key, Attr
@@ -6,10 +7,10 @@ dynamodb = boto3.resource('dynamodb')
 
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
+id_table = dynamodb.Table('ids')
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
-
     Attributes:
         function -- function error occured in
         message -- explanation of the error
@@ -28,7 +29,8 @@ class DatabaseException(Exception):
 ##########################################################
 
 
-def create_user(userId):
+def create_user(deviceId, userId):
+    # update user table
     try:
         user_table.put_item(
             Item = {
@@ -40,6 +42,7 @@ def create_user(userId):
                 'breathCount': 0,
                 'backgrounds': [],
                 'drawings': [],
+                'breathHistory': [],
                 'unlimitedExpiration': 0
             },
             ConditionExpression=Attr('userId').not_exists()
@@ -48,6 +51,28 @@ def create_user(userId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("create_user", "userId already exists")
+    # update ids table
+    try:
+        id_table.update_item(
+            Key = {
+                'deviceId': deviceId
+            },
+            UpdateExpression='UPDATE userId :c',
+            ExpressionAttributeValues={ ":c": userId }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("create_user", "deviceId unable to update")
+
+def get_user_id(deviceId):
+    response = id_table.get_item(
+        Key={'deviceId': deviceId}
+    )
+    if ('Item' in response.keys()):
+        return response['Item']
+    else:
+        raise DatabaseException("get_user_id", "deviceId does not exist")
 
 def get_user_attr(userId, attrs):
     projection = ', '.join(attrs)
@@ -59,7 +84,6 @@ def get_user_attr(userId, attrs):
         return response['Item']
     else:
         raise DatabaseException("get_user_attr", "userId does not exist")
-    
     
 def add_coins(userId, coins):
     try:
@@ -120,6 +144,21 @@ def add_background(userId, backgroundId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_background", "userId does not exist")
+
+def add_raw_breath(userId, breath):
+    try:
+        user_table.update_item(
+            Key={
+                'userId': userId
+            },
+            UpdateExpression='SET breathHistory = list_append(breathHistory, :b)',
+            ConditionExpression=Attr('userId').eq(userId),
+            ExpressionAttributeValues={ ":b": [breath] }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("add_brush", "userId does not exist")
         
 def set_baseline(userId, val):
     try:
@@ -376,4 +415,9 @@ def fetch_user_art_canvases(userId):
         return response['Items']
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
-    
+
+def add_drawing_tag(drawingId, tag):
+
+
+def get_drawing_tags(drawingID):
+ 
