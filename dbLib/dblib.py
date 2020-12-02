@@ -42,9 +42,7 @@ def create_user(deviceId, userId):
                 'breathCount': 0,
                 'backgrounds': [],
                 'drawings': [],
-                'flows': [],
-                'volumes': [],
-                'timestamps': [],
+                'breathHistory': [],
                 'unlimitedExpiration': 0
             },
             ConditionExpression=Attr('userId').not_exists()
