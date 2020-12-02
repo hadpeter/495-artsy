@@ -7,6 +7,7 @@ dynamodb = boto3.resource('dynamodb')
 
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
+id_table = dynamodb.Table('ids')
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
@@ -28,7 +29,8 @@ class DatabaseException(Exception):
 ##########################################################
 
 
-def create_user(userId):
+def create_user(deviceId, userId):
+    # update user table
     try:
         user_table.put_item(
             Item = {
@@ -51,6 +53,28 @@ def create_user(userId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("create_user", "userId already exists")
+    # update ids table
+    try:
+        id_table.update_item(
+            Key = {
+                'deviceId': deviceId
+            },
+            UpdateExpression='UPDATE userId :c',
+            ExpressionAttributeValues={ ":c": userId }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("create_user", "deviceId unable to update")
+
+def get_user_id(deviceId):
+    response = id_table.get_item(
+        Key={'deviceId': deviceId}
+    )
+    if ('Item' in response.keys()):
+        return response['Item']
+    else:
+        raise DatabaseException("get_user_id", "deviceId does not exist")
 
 def get_user_attr(userId, attrs):
     projection = ', '.join(attrs)
@@ -393,4 +417,9 @@ def fetch_user_art_canvases(userId):
         return response['Items']
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
+
+def add_drawing_tag(drawingId, tag):
+
+
+def get_drawing_tags(drawingID):
  

@@ -2,7 +2,7 @@ import boto3
 import botocore
 from boto3.dynamodb.conditions import Key, Attr
 
-dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
+dynamodb = boto3.resource('dynamodb')
 
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
