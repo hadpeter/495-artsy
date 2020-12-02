@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 import json
+import math
 import boto3
 from dblib import *
 import time
 import s3_lib
-import random #TODO get rid of random calls
 
 def get_user_info(event):
     userId = event['headers']['userId']
@@ -184,18 +183,21 @@ def publish_to_gallery(event):
     }
 
 def api_add_breath(event):
+    currTime = time.time_ns()
+    breath = [currTime,event['headers']['flow'],event['headers']['volume']]
+    add_raw_breath(event['headers']['userId'],breath)
     score = compute_score(event['headers']['flow'],event['headers']['volume'])
     baseline = get_user_attr(event['headers']['userId'], ["baseline"])['baseline']
-    #LOWBAR = 0.4
-    LOWBAR = 0 #TEST VALUE
+    LOWBAR = 0.4
+    #LOWBAR = 0 #TEST VALUE
     UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
     #UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
     
     if(score > LOWBAR*baseline):
-        if(get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']<time.time_ns()):
+        if(get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']<currTime):
             add_breath(event['headers']['userId'])
             if(get_user_attr(event['headers']['userId'],['breathCount'])['breathCount']==10):
-                set_unlimited(event['headers']['userId'], time.time_ns()+UNLIMITED_DURATION)
+                set_unlimited(event['headers']['userId'], currTime+UNLIMITED_DURATION)
         add_coins(event['headers']['userId'],score)
     if(score > baseline):
         set_baseline(event['headers']['userId'],score)
@@ -243,8 +245,24 @@ def image_object(img):
     return response
 
 def compute_score(flow,volume):
-    #TODO implement something that actually analyses volume and flow
-    return random.randint(50,50)
+    weights = [0,1,1,1,1,1,1,1,1,1,1,1,1]
+    values = [0,.5,.3,.1,0,1,.5,.3,0,1.1,.9,.2,0,1.2,.6,.5]
+    length = len(flow)
+    score = 0
+    if(length<10):
+        score = 52.0/(1+math.exp(-.39*(length-10)))
+    else:
+        score = 50.0/(1+math.exp(-.15*(length-10)))
+    numerator = 0.0
+    denominator = 0.0
+    index = 0
+    for x in range(length):
+        numerator += values[4*index+flow[x]]
+        denominator += weights[4*index+flow[x]]
+        index = flow[x]
+    if denominator == 0:
+        denominator = 1
+    return int(2*score*numerator/denominator)
 
 apiDict = {
     "get-user-info": get_user_info,
