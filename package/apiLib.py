@@ -204,7 +204,6 @@ def api_add_breath(event):
         set_baseline(event['headers']['userId'],score)
         
     response = {
-        'seconds_until_use': int((get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']-time.time_ns())/1000000000),
         'balance': int(get_user_attr(event['headers']['userId'],['coins'])['coins']),
         'breathCount': int(get_user_attr(event['headers']['userId'],['breathCount'])['breathCount'])
     }
