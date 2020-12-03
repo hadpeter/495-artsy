@@ -33,6 +33,7 @@ def get_user_art(event):
             "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawing["drawingId"]}.png'),
             "dat": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/dat/{drawing["drawingId"]}.dat'),
             "drawingId": drawing["drawingId"],
+            "title": drawing["title"],
             "time": int(drawing["modified"])
         }
 
