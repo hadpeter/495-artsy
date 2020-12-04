@@ -57,12 +57,22 @@ def create_user(deviceId, userId):
                 'deviceId': deviceId
             },
             UpdateExpression='UPDATE userId :b',
+            ConditionExpression=Attr('deviceId').eq(deviceId),
             ExpressionAttributeValues={ ":b": userId }
         )
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-            raise
-        raise DatabaseException("create_user", "deviceId unable to update")
+    except:
+        try:
+            id_table.put_item(
+            Item = {
+                'deviceId': deviceId,
+                'userId': userId
+            },
+            ConditionExpression=Attr('userId').not_exists()
+        )
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+                raise
+            raise DatabaseException("create_user", "deviceId unable to update")
 
 def get_user_id(deviceId):
     response = id_table.get_item(
