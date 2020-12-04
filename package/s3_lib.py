@@ -19,6 +19,10 @@ def upload_file(bucket_name, obj_name):
 # in the bucket that we wish to generate a url to access
 def get_file(bucket_name , obj_name):
     s3 = boto3.client('s3')
+    try:
+        head = s3.head_object(Bucket=bucket_name, Key=obj_name)
+    except NoSuchKey as e:
+        raise S3Exception("get_file", "file does not exist")
     url = s3.generate_presigned_url('get_object', Params = {'Bucket': bucket_name, 'Key': obj_name}, ExpiresIn = 600)
     if url is None:
         print("failure generating presigned url")

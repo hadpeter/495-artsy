@@ -151,8 +151,8 @@ def purchase_background(event):
     userId = event['headers']['userId']
     backgroundId = event['headers']['backgroundId']
     cost = int(event['headers']['cost'])
-    add_coins(userId, cost*(-1))
     add_background(userId, backgroundId)
+    add_coins(userId, cost*(-1))
     return {
         'statusCode': 200,
     }

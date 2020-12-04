@@ -141,6 +141,10 @@ def add_paint(userId, paintId):
 
 def add_background(userId, backgroundId):
     try:
+        head = s3.head_object(Bucket='artsy-bucket', Key=backgroundId)
+    except NoSuchKey as e:
+        raise S3Exception("get_file", "file does not exist")
+    try:
         user_table.update_item(
             Key={
                 'userId': userId
