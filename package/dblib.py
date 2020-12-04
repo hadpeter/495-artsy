@@ -56,8 +56,8 @@ def create_user(deviceId, userId):
             Key = {
                 'deviceId': deviceId
             },
-            UpdateExpression='UPDATE userId :c',
-            ExpressionAttributeValues={ ":c": userId }
+            UpdateExpression='UPDATE userId :b',
+            ExpressionAttributeValues={ ":b": userId }
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
