@@ -204,7 +204,6 @@ def api_add_breath(event):
         set_baseline(event['headers']['userId'],score)
         
     response = {
-        'seconds_until_use': int((get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']-time.time_ns())/1000000000),
         'balance': int(get_user_attr(event['headers']['userId'],['coins'])['coins']),
         'breathCount': int(get_user_attr(event['headers']['userId'],['breathCount'])['breathCount'])
     }
@@ -240,12 +239,14 @@ def add_tag(event, context):
         'statusCode': 200
     }
 
-def export_data():
-    data = export_breath_data()
+
+def export_data(event):
+    data = list(map(map_breaths, export_breath_data()))
     return {
         'statusCode': 200,
         'body': json.dumps(data)
     }
+
 
 
 #Helper functions
@@ -282,6 +283,19 @@ def compute_score(flow,volume):
     if denominator == 0:
         denominator = 1
     return int(2.5*score*numerator/denominator)
+    
+def map_single_breath(b):
+    return {
+        "timestamp": int(b[0]),
+        "flow": list(map(int,b[1])),
+        "volume": list(map(int,b[2]))
+    }
+    
+def map_breaths(b):
+    r = {}
+    r["breathHistory"] = list(map(map_single_breath, b['breathHistory']))
+    r["userId"] = b['userId']
+    return r
 
 apiDict = {
     "get-user-info": get_user_info,

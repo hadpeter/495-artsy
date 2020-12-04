@@ -235,6 +235,7 @@ def create_drawing(userId, drawingId, coloringPage, time):
                 'coloringPage': coloringPage,
                 'title': '',
                 'likes': 0,
+                'saved': False,
                 'comments': []
             },
             ConditionExpression=Attr('drawingId').not_exists()
@@ -312,9 +313,9 @@ def update_modified(drawingId, time):
             Key={
                 'drawingId': drawingId
             },
-            UpdateExpression='SET modified = :b',
+            UpdateExpression='SET modified = :b, saved = :t',
             ConditionExpression=Attr('drawingId').eq(drawingId),
-            ExpressionAttributeValues={ ":b": time }
+            ExpressionAttributeValues={ ":b": time, ":t": True }
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
@@ -354,7 +355,7 @@ def add_like(drawingId):
 def fetch_gallery_all():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('published').eq(True)
+        FilterExpression=Attr('published').eq(True) & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -364,7 +365,7 @@ def fetch_gallery_all():
 def fetch_gallery_coloringPages():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').ne('')
+        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').ne('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -374,7 +375,7 @@ def fetch_gallery_coloringPages():
 def fetch_gallery_canvases():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, modified',
-        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').eq('')
+        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').eq('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -388,7 +389,7 @@ def fetch_user_art_all(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings)
+        FilterExpression=Attr('drawingId').is_in(drawings) &  Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -402,7 +403,7 @@ def fetch_user_art_coloringPages(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').ne('')
+        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').ne('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -416,7 +417,7 @@ def fetch_user_art_canvases(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').eq('')
+        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').eq('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
