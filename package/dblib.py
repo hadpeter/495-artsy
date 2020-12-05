@@ -7,6 +7,8 @@ dynamodb = boto3.resource('dynamodb')
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
 id_table = dynamodb.Table('ids')
+NUMTAGS = 8
+TAGS = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
@@ -75,11 +77,17 @@ def create_user(deviceId, userId):
             raise DatabaseException("create_user", "deviceId unable to update")
 
 def get_user_id(deviceId):
+    
+    #return id_table.query(
+    #    KeyConditionExpression=Key('deviceId').eq(deviceId)
+    #)['Items'][0]['userId']
+    
+    
     response = id_table.get_item(
         Key={'deviceId': deviceId}
     )
     if ('Item' in response.keys()):
-        return response['Item']
+        return response['Item']['userId']
     else:
         raise DatabaseException("get_user_id", "deviceId does not exist")
 
@@ -141,9 +149,12 @@ def add_paint(userId, paintId):
 
 def add_background(userId, backgroundId):
     try:
-        head = s3.head_object(Bucket='artsy-bucket', Key=backgroundId)
-    except NoSuchKey as e:
-        raise S3Exception("add_background", "background does not exist")
+        head = s3.head_object(  
+                Bucket='artsy-bucket',  
+                Key=backgroundId    
+            )   
+    except:
+        raise Exception
     try:
         user_table.update_item(
             Key={
@@ -248,7 +259,7 @@ def create_drawing(userId, drawingId, coloringPage, time):
                 'modified': time,
                 'coloringPage': coloringPage,
                 'title': '',
-                'likes': 0,
+                'tags': {TAGS[i]: [] for i in range(0, NUMTAGS)},
                 'saved': False,
                 'comments': []
             },
@@ -272,7 +283,8 @@ def create_drawing(userId, drawingId, coloringPage, time):
             raise
         delete_drawing(drawingId)
         raise DatabaseException("create_drawing", "userId does not exist")
-            
+    
+
 def delete_drawing(drawingId):
     drawing_table.delete_item(
         Key={
@@ -438,9 +450,30 @@ def fetch_user_art_canvases(userId):
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
 
-def add_drawing_tag(drawingId, tag):
-    pass
+def add_drawing_tag(drawingId, tag, userId):
+    #Currently no error check to see if user has already added a tag
+    #also no check to see if valid tag
+    if (tag not in TAGS):
+        raise DatabaseException("add_drawing_tag", "tag does not exist")
+        
+    try:
+        drawing_table.update_item(
+            Key={
+                'drawingId': drawingId
+            },
+            UpdateExpression='SET #ta.#tb = list_append(#ta.#tb, :i)',
+            ConditionExpression=Attr('drawingId').eq(drawingId),
+            ExpressionAttributeNames ={ "#ta": "tags", "#tb": tag},
+            ExpressionAttributeValues={ ":i": [userId] }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("add_drawing_tag", "drawingId does not exist")
 
 
-def get_drawing_tags(drawingID):
-    pass
+def get_drawing_tags(drawingId, userId):
+    raw_tag_data = get_drawing_attr(drawingId, ['tags'])
+    return {key: {"count": len(value) ,"user_given": userId in value} for key, value in raw_tag_data['tags'].items()}
+
+
