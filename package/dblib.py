@@ -37,7 +37,7 @@ def create_user(deviceId, userId):
             Item = {
                 'userId': userId,
                 'coins': 0,
-                'brushes': ["basic"],
+                'brushes': ["Basic"],
                 'paints': ["0"],
                 'baseline': 0,
                 'breathCount': 0,
