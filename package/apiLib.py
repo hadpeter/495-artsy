@@ -268,7 +268,7 @@ def image_object(img):
     return response
 
 def compute_score(flow,volume):
-    weights = [0,1,1,1,1,1,1,1,1,1,1,1,1]
+    weights = [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
     values = [0,.5,.3,.1,0,1,.5,.3,0,1.1,.9,.2,0,1.2,.6,.5]
     length = len(flow)
     score = 0
