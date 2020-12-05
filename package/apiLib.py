@@ -4,6 +4,7 @@ import boto3
 from dblib import *
 import time
 import s3_lib
+import email_lib
 
 def get_user_info(event):
     userId = event['headers']['userId']
@@ -30,8 +31,9 @@ def get_user_art(event):
     for drawing in data:
         new_item = {
             "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawing["drawingId"]}.png'),
-            "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawing["drawingId"]}.svg'),
+            "dat": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/dat/{drawing["drawingId"]}.dat'),
             "drawingId": drawing["drawingId"],
+            "title": drawing["title"],
             "time": int(drawing["modified"])
         }
 
@@ -67,7 +69,7 @@ def api_get_user_id(event):
         'statusCode': 200,
         'body': json.dumps(userId)
     }
-    
+
 
 
 def get_drawing(event):
@@ -76,7 +78,7 @@ def get_drawing(event):
 
     response = {
         "png": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
-        "svg": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
+        "dat": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/dat/{drawingId}.dat')
     }
 
     return {
@@ -107,20 +109,19 @@ def api_create_drawing(event):
     }
 
 def save_drawing(event):
-    drawingId = event["headers"]['drawingId']
-    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
+    headers = event['params']['header']
+    drawingId = headers['drawingId']
+    userId = '-'.join(drawingId.split('-')[0:2])
 
-    if "title" in event["headers"]:
-        set_title(event["headers"]['drawingId'],event["headers"]['title'])
+    update_modified(drawingId, time.time_ns())
 
-    response = {
-        "png": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png'),
-        "svg": s3_lib.upload_file('artsy-bucket', f'drawings/{userId}/svg/{drawingId}.svg')
-    }
+    if "title" in headers:
+        set_title(drawingId, headers['title'])
+
+    s3_lib.saveDrawing(event, drawingId)
     
     return {
-        'statusCode': 200,
-        'body': json.dumps(response)
+        'statusCode': 200
     }
 
 
@@ -150,8 +151,8 @@ def purchase_background(event):
     userId = event['headers']['userId']
     backgroundId = event['headers']['backgroundId']
     cost = int(event['headers']['cost'])
-    add_coins(userId, cost*(-1))
     add_background(userId, backgroundId)
+    add_coins(userId, cost*(-1))
     return {
         'statusCode': 200,
     }
@@ -223,7 +224,6 @@ def api_add_breath(event):
         feedback = "There was an illegal integer in the flow/volume"
         
     response = {
-        #'seconds_until_use': int((get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']-time.time_ns())/1000000000),
         'grade': grade,
         'feedback': feedback,
         'score': score,
@@ -234,6 +234,16 @@ def api_add_breath(event):
     return {
         'statusCode': 200,
         'body': json.dumps(response)
+    }
+
+def send_drawing(event):
+    drawingId = event["headers"]['drawingId']
+    userId = '-'.join(event["headers"]['drawingId'].split('-')[0:2])
+    url = s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{drawingId}.png')
+    addr = event["headers"]['address']
+    email_lib.generateEmail(addr, url)
+    return {
+        'statusCode': 200
     }
 
 def get_tags(event, context):
@@ -253,6 +263,15 @@ def add_tag(event, context):
     }
 
 
+def export_data(event):
+    data = list(map(map_breaths, export_breath_data()))
+    return {
+        'statusCode': 200,
+        'body': json.dumps(data)
+    }
+
+
+
 #Helper functions
 def create_id(userId):
     return str(userId) + '-' + str(time.time_ns())
@@ -262,7 +281,8 @@ def image_object(img):
 
     response = {
         "imageUrl": s3_lib.get_file('artsy-bucket', f'drawings/{userId}/png/{img["drawingId"]}.png'),
-        "title": img['title']
+        "title": img['title'],
+        "drawingId": img['drawingId']
     }
     
     return response
@@ -302,6 +322,19 @@ def compute_score(flow,volume):
     elif score > 10:
         grade = "Okay"
     return [score,grade,feedback]
+    
+def map_single_breath(b):
+    return {
+        "timestamp": int(b[0]),
+        "flow": list(map(int,b[1])),
+        "volume": list(map(int,b[2]))
+    }
+    
+def map_breaths(b):
+    r = {}
+    r["breathHistory"] = list(map(map_single_breath, b['breathHistory']))
+    r["userId"] = b['userId']
+    return r
 
 apiDict = {
     "get-user-info": get_user_info,
@@ -316,5 +349,6 @@ apiDict = {
     "purchase-background": purchase_background,
     "get-gallery": get_gallery,
     "publish-to-gallery": publish_to_gallery,
-    "add-breath": api_add_breath
+    "add-breath": api_add_breath,
+    "send-drawing": send_drawing
 }
