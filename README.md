@@ -30,3 +30,9 @@ Our REST API will be deployed on an AWS API Gateway instance, making our backend
 1. Install dependencies 'pip3 install --target ./package requests'
 2. Create the deployment package by moving into the package directory. Be sure to have the lambda_function.py file in this directory. Run the command 'zip -r package.zip ./*'
 3. In the lambda console select upload zip and select the zip file from your local file tree
+
+## Scoring Spirometer Data
+The main factor for the score comes from the length of the breath. Here is a graph on desmos showing input length on the x-axis and score on the y-axis: https://www.desmos.com/calculator/z5qwylid3u.
+There is a second component to the score I call the modifier which is based on the quality of the flow. This modifier rewards the user on having lower flow (1 being the best) and on being consistent (consecutive numbers are better than vasilating flow values).
+Specifically, there is a value associated with starting on one value and moving to the next value. Since there are 4 possible starting and ending values (0-3) there are 16 values (4 starting values * 4 ending values = 16). In the file apiLib.py, there is a function called compute score. In it is a hard coded array called values. This array has 16 values corresponding to the 16 possible starting and ending values. The first 4 represent starting at 0, the second 4 are for starting at 1, the third 4 are for starting at 2, and the last 4 represent starting with 3. In each set of 4, the first number corresonds to ending with 0, and then the next three correspond to ending with 1, 2, and 3 respectively. There is also a vector for weights for each of these values, but almost all the weights are 1 so that everything is weighted equall.
+The final score comes from the output of the desmos curve multiplied by the modifier. Hopefully this helps you understand the scoring system if any small adjustments need to be made.
