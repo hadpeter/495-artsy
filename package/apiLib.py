@@ -210,7 +210,7 @@ def api_add_breath(event):
         #LOWBAR = 0 #TEST VALUE
         UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
         #UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
-        
+
         if(score > LOWBAR*float(baseline)):
             if(get_user_attr(userId,['unlimitedExpiration'])['unlimitedExpiration']<currTime):
                 add_breath(userId)
