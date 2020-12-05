@@ -6,10 +6,10 @@ dynamodb = boto3.resource('dynamodb')
 
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
+id_table = dynamodb.Table('ids')
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
-
     Attributes:
         function -- function error occured in
         message -- explanation of the error
@@ -28,7 +28,8 @@ class DatabaseException(Exception):
 ##########################################################
 
 
-def create_user(userId):
+def create_user(deviceId, userId):
+    # update user table
     try:
         user_table.put_item(
             Item = {
@@ -40,6 +41,7 @@ def create_user(userId):
                 'breathCount': 0,
                 'backgrounds': [],
                 'drawings': [],
+                'breathHistory': [],
                 'unlimitedExpiration': 0
             },
             ConditionExpression=Attr('userId').not_exists()
@@ -48,6 +50,38 @@ def create_user(userId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("create_user", "userId already exists")
+    # update ids table
+    try:
+        id_table.update_item(
+            Key = {
+                'deviceId': deviceId
+            },
+            UpdateExpression='UPDATE userId :b',
+            ConditionExpression=Attr('deviceId').eq(deviceId),
+            ExpressionAttributeValues={ ":b": userId }
+        )
+    except:
+        try:
+            id_table.put_item(
+            Item = {
+                'deviceId': deviceId,
+                'userId': userId
+            },
+            ConditionExpression=Attr('userId').not_exists()
+        )
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+                raise
+            raise DatabaseException("create_user", "deviceId unable to update")
+
+def get_user_id(deviceId):
+    response = id_table.get_item(
+        Key={'deviceId': deviceId}
+    )
+    if ('Item' in response.keys()):
+        return response['Item']
+    else:
+        raise DatabaseException("get_user_id", "deviceId does not exist")
 
 def get_user_attr(userId, attrs):
     projection = ', '.join(attrs)
@@ -59,8 +93,7 @@ def get_user_attr(userId, attrs):
         return response['Item']
     else:
         raise DatabaseException("get_user_attr", "userId does not exist")
-    
-    
+
 def add_coins(userId, coins):
     try:
         user_table.update_item(
@@ -108,6 +141,10 @@ def add_paint(userId, paintId):
 
 def add_background(userId, backgroundId):
     try:
+        head = s3.head_object(Bucket='artsy-bucket', Key=backgroundId)
+    except NoSuchKey as e:
+        raise S3Exception("add_background", "background does not exist")
+    try:
         user_table.update_item(
             Key={
                 'userId': userId
@@ -120,7 +157,22 @@ def add_background(userId, backgroundId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_background", "userId does not exist")
-        
+
+def add_raw_breath(userId, breath):
+    try:
+        user_table.update_item(
+            Key={
+                'userId': userId
+            },
+            UpdateExpression='SET breathHistory = list_append(breathHistory, :b)',
+            ConditionExpression=Attr('userId').eq(userId),
+            ExpressionAttributeValues={ ":b": [breath] }
+        )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            raise
+        raise DatabaseException("add_brush", "userId does not exist")
+
 def set_baseline(userId, val):
     try:
         user_table.update_item(
@@ -154,7 +206,7 @@ def add_breath(userId):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("add_breath", "userId does not exist")
-        
+
 def set_unlimited(userId, time):
     try:
         user_table.update_item(
@@ -169,8 +221,16 @@ def set_unlimited(userId, time):
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             raise
         raise DatabaseException("set_unlimited", "userId does not exist")
-    
-    
+
+
+def export_breath_data():
+    response = user_table.scan(
+        ProjectionExpression='userId, breathHistory',
+    )
+    if ('Items' in response.keys()):
+        return response['Items']
+    else:
+        return []
     
 ##########################################################
 ############                              ################
@@ -189,6 +249,7 @@ def create_drawing(userId, drawingId, coloringPage, time):
                 'coloringPage': coloringPage,
                 'title': '',
                 'likes': 0,
+                'saved': False,
                 'comments': []
             },
             ConditionExpression=Attr('drawingId').not_exists()
@@ -266,9 +327,9 @@ def update_modified(drawingId, time):
             Key={
                 'drawingId': drawingId
             },
-            UpdateExpression='SET modified = :b',
+            UpdateExpression='SET modified = :b, saved = :t',
             ConditionExpression=Attr('drawingId').eq(drawingId),
-            ExpressionAttributeValues={ ":b": time }
+            ExpressionAttributeValues={ ":b": time, ":t": True }
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
@@ -308,7 +369,7 @@ def add_like(drawingId):
 def fetch_gallery_all():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('published').eq(True)
+        FilterExpression=Attr('published').eq(True) & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -318,7 +379,7 @@ def fetch_gallery_all():
 def fetch_gallery_coloringPages():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').ne('')
+        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').ne('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -328,7 +389,7 @@ def fetch_gallery_coloringPages():
 def fetch_gallery_canvases():
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, modified',
-        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').eq('')
+        FilterExpression=Attr('published').eq(True) & Attr('coloringPage').eq('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -342,7 +403,7 @@ def fetch_user_art_all(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings)
+        FilterExpression=Attr('drawingId').is_in(drawings) &  Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -356,7 +417,7 @@ def fetch_user_art_coloringPages(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, coloringPage, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').ne('')
+        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').ne('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
@@ -370,10 +431,16 @@ def fetch_user_art_canvases(userId):
         return []
     response = drawing_table.scan(
         ProjectionExpression='drawingId, title, modified',
-        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').eq('')
+        FilterExpression=Attr('drawingId').is_in(drawings) & Attr('coloringPage').eq('') & Attr('saved').eq(True)
     )
     if ('Items' in response.keys()):
         return response['Items']
     else:
         raise DatabaseException("fetch_user_art_canvases", "userId does not exist")
-    
+
+def add_drawing_tag(drawingId, tag):
+    pass
+
+
+def get_drawing_tags(drawingID):
+    pass
