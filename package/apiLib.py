@@ -7,7 +7,7 @@ import s3_lib
 import email_lib
 
 def get_user_info(event):
-    userId = event['headers']['userId']
+    userId = api_get_user_id(event)
     attrs = ["userId", "coins", "brushes", "paints", "baseline", "breathCount", "backgrounds", "drawings", "unlimitedExpiration"]
     user_info = get_user_attr(userId, attrs)
     
@@ -23,7 +23,16 @@ def get_user_info(event):
 
 
 def get_user_art(event):
-    userId = event["headers"]["userId"]
+    userId = api_get_user_id(event)
+    if userId is None:
+        response = {
+            "canvas": [],
+            "template": []
+        }
+        return {
+            'statusCode': 200,
+            'body': json.dumps(response)
+        }
     data = fetch_user_art_all(userId)
     canvas = []
     template = []
@@ -64,11 +73,18 @@ def api_create_user(event):
 
 def api_get_user_id(event):
     deviceId = event["headers"]["deviceId"]
-    userId = get_user_id(deviceId)
-    return {
-        'statusCode': 200,
-        'body': json.dumps(userId)
-    }
+    try:
+        return get_user_id(deviceId)
+
+    except:
+        if event["resource"][1:] == "get-user-art":
+            return None
+        elif event["resource"][1:] == "get-user-info":
+            userId = deviceId + "-" + str(time.time_ns())
+            create_user(deviceId, userId)
+            return userId
+        else:
+            raise DatabaseException("api-get-user-id", "no userId associated with deviceId")
 
 
 
@@ -98,11 +114,12 @@ def get_templates(event):
     }
 
 def api_create_drawing(event):
-    drawingId = create_id(event['headers']['userId'])
+    userId = api_get_user_id(event)
+    drawingId = create_id(userId)
     if 'template'in event['headers']:
-        create_drawing(event['headers']['userId'], drawingId ,event['headers']['template'],time.time_ns())
+        create_drawing(userId, drawingId ,event['headers']['template'],time.time_ns())
     else:
-        create_drawing(event['headers']['userId'], drawingId, "", time.time_ns())
+        create_drawing(userId, drawingId, "", time.time_ns())
     return {
         'statusCode': 200,
         'body': json.dumps(drawingId)
@@ -126,7 +143,7 @@ def save_drawing(event):
 
 
 def purchase_brush(event):
-    userId = event['headers']['userId']
+    userId = api_get_user_id(event)
     brushId = event['headers']['brushId']
     cost = int(event['headers']['cost'])
     add_coins(userId, cost*(-1))
@@ -137,7 +154,7 @@ def purchase_brush(event):
 
 
 def purchase_paint(event):
-    userId = event['headers']['userId']
+    userId = api_get_user_id(event)
     paintId = event['headers']['paintId']
     cost = int(event['headers']['cost'])
     add_coins(userId, cost*(-1))
@@ -148,7 +165,7 @@ def purchase_paint(event):
 
 
 def purchase_background(event):
-    userId = event['headers']['userId']
+    userId = api_get_user_id(event)
     backgroundId = event['headers']['backgroundId']
     cost = int(event['headers']['cost'])
     add_background(userId, backgroundId)
@@ -185,7 +202,7 @@ def publish_to_gallery(event):
 
 def api_add_breath(event):
     currTime = time.time_ns()
-    userId = event['headers']['userId']
+    userId = api_get_user_id(event)
     flow = flow = [int(s) for s in event['headers']['flow'].split() if s.isdigit()]
     volume = [int(s) for s in event['headers']['volume'].split() if s.isdigit()]
     score = 0
@@ -247,7 +264,7 @@ def send_drawing(event):
     }
 
 def get_tags(event):
-    userId = get_user_id(event['headers']['deviceId'])
+    userId = api_get_user_id(event)
     drawingId = event['headers']['drawingId']
     tags = get_drawing_tags(drawingId, userId)
     return {
@@ -256,7 +273,7 @@ def get_tags(event):
     }
 
 def add_tag(event):
-    userId = get_user_id(event['headers']['deviceId'])
+    userId = api_get_user_id(event)
     drawingId = event['headers']['drawingId']
     tag = event['headers']['tag']
     add_drawing_tag(drawingId, tag, userId)
