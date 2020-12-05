@@ -37,8 +37,8 @@ def create_user(deviceId, userId):
             Item = {
                 'userId': userId,
                 'coins': 0,
-                'brushes': [],
-                'paints': [],
+                'brushes': ["Basic"],
+                'paints': ["0"],
                 'baseline': 0,
                 'breathCount': 0,
                 'backgrounds': [],
@@ -58,23 +58,24 @@ def create_user(deviceId, userId):
             Key = {
                 'deviceId': deviceId
             },
-            UpdateExpression='UPDATE userId :b',
-            ConditionExpression=Attr('deviceId').eq(deviceId),
+            UpdateExpression='SET userId = :b',
+            # ConditionExpression=Attr('deviceId').eq(deviceId),
             ExpressionAttributeValues={ ":b": userId }
         )
     except:
-        try:
-            id_table.put_item(
-            Item = {
-                'deviceId': deviceId,
-                'userId': userId
-            },
-            ConditionExpression=Attr('userId').not_exists()
-        )
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                raise
-            raise DatabaseException("create_user", "deviceId unable to update")
+        raise DatabaseException("create_user", "deviceId unable to update")
+        # try:
+        #     id_table.put_item(
+        #     Item = {
+        #         'deviceId': deviceId,
+        #         'userId': userId
+        #     },
+        #     ConditionExpression=Attr('userId').not_exists()
+        # )
+        # except botocore.exceptions.ClientError as e:
+        #     if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+        #         raise
+        #     raise DatabaseException("create_user", "deviceId unable to update")
 
 def get_user_id(deviceId):
     
@@ -148,13 +149,14 @@ def add_paint(userId, paintId):
         raise DatabaseException("add_paints", "userId does not exist")
 
 def add_background(userId, backgroundId):
+    background = f'backgrounds/png/{backgroundId}.png'
     try:
-        head = s3.head_object(  
+        head = boto3.client('s3').head_object(
                 Bucket='artsy-bucket',  
-                Key=backgroundId    
+                Key=background
             )   
     except:
-        raise Exception
+        raise DatabaseException("create_user", f'background: {background} does not exist')
     try:
         user_table.update_item(
             Key={
