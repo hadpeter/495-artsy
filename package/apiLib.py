@@ -371,5 +371,6 @@ apiDict = {
     "add-breath": api_add_breath,
     "send-drawing": send_drawing,
     "get-tags": get_tags,
-    "add-tag": add_tag
+    "add-tag": add_tag,
+    "export-data": export_data()
 }
