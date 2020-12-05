@@ -38,7 +38,7 @@ def get_user_art(event):
         }
 
         if drawing["coloringPage"] != "":
-            new_item['templateUrl'] = s3_lib.get_file('artsy-bucket', f'backgrounds/svg/{drawing["coloringPage"]}.svg')
+            new_item['templateUrl'] = s3_lib.get_file('artsy-bucket', f'backgrounds/png/{drawing["coloringPage"]}.png')
             template.append(new_item)
         else:
             canvas.append(new_item)
@@ -246,18 +246,20 @@ def send_drawing(event):
         'statusCode': 200
     }
 
-def get_tags(event, context):
+def get_tags(event):
+    userId = get_user_id(event['headers']['deviceId'])
     drawingId = event['headers']['drawingId']
-    tags = get_drawing_tags(drawingId)
+    tags = get_drawing_tags(drawingId, userId)
     return {
         'statusCode': 200,
         'body': json.dumps(tags)
     }
 
-def add_tag(event, context):
+def add_tag(event):
+    userId = get_user_id(event['headers']['deviceId'])
     drawingId = event['headers']['drawingId']
-    tag = event['headers']['drawingId']
-    add_drawing_tag(drawingId, tag)
+    tag = event['headers']['tag']
+    add_drawing_tag(drawingId, tag, userId)
     return {
         'statusCode': 200
     }
@@ -350,5 +352,7 @@ apiDict = {
     "get-gallery": get_gallery,
     "publish-to-gallery": publish_to_gallery,
     "add-breath": api_add_breath,
-    "send-drawing": send_drawing
+    "send-drawing": send_drawing,
+    "get-tags": get_tags,
+    "add-tag": add_tag
 }
