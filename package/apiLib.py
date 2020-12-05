@@ -185,27 +185,50 @@ def publish_to_gallery(event):
 
 def api_add_breath(event):
     currTime = time.time_ns()
-    breath = [currTime,event['headers']['flow'],event['headers']['volume']]
-    add_raw_breath(event['headers']['userId'],breath)
-    score = compute_score(event['headers']['flow'],event['headers']['volume'])
-    baseline = get_user_attr(event['headers']['userId'], ["baseline"])['baseline']
-    LOWBAR = 0.4
-    #LOWBAR = 0 #TEST VALUE
-    UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
-    #UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
-    
-    if(score > LOWBAR*baseline):
-        if(get_user_attr(event['headers']['userId'],['unlimitedExpiration'])['unlimitedExpiration']<currTime):
-            add_breath(event['headers']['userId'])
-            if(get_user_attr(event['headers']['userId'],['breathCount'])['breathCount']==10):
-                set_unlimited(event['headers']['userId'], currTime+UNLIMITED_DURATION)
-        add_coins(event['headers']['userId'],score)
-    if(score > baseline):
-        set_baseline(event['headers']['userId'],score)
+    userId = event['headers']['userId']
+    flow = flow = [int(s) for s in event['headers']['flow'].split() if s.isdigit()]
+    volume = [int(s) for s in event['headers']['volume'].split() if s.isdigit()]
+    score = 0
+    grade = ""
+    feedback = ""
+    legalBreath = True
+    for num in flow:
+        if num > 3:
+            legalBreath = False
+            break
+    for num in volume:
+        if num > 10:
+            legalBreath = False
+            break
+
+    if legalBreath:
+        breath = [currTime,flow,volume]
+        add_raw_breath(userId,breath)
+        [score,grade,feedback] = compute_score(flow,volume)
+        baseline = get_user_attr(userId, ["baseline"])['baseline']
+        LOWBAR = 0.4
+        #LOWBAR = 0 #TEST VALUE
+        UNLIMITED_DURATION = 3600000000000 #one hour in nanoseconds
+        #UNLIMITED_DURATION = 10000000000 #10 seconds in nanoseconds | TEST VALUE
+        
+        if(score > LOWBAR*float(baseline)):
+            if(get_user_attr(userId,['unlimitedExpiration'])['unlimitedExpiration']<currTime):
+                add_breath(userId)
+                if(get_user_attr(userId,['breathCount'])['breathCount']==10):
+                    set_unlimited(userId, currTime+UNLIMITED_DURATION)
+            add_coins(userId,score)
+        if(score > baseline):
+            set_baseline(userId,score)
+    else:
+        grade = "Ungraded"
+        feedback = "There was an illegal integer in the flow/volume"
         
     response = {
-        'balance': int(get_user_attr(event['headers']['userId'],['coins'])['coins']),
-        'breathCount': int(get_user_attr(event['headers']['userId'],['breathCount'])['breathCount'])
+        'grade': grade,
+        'feedback': feedback,
+        'score': score,
+        'balance': int(get_user_attr(userId,['coins'])['coins']),
+        'breathCount': int(get_user_attr(userId,['breathCount'])['breathCount'])
     }
     
     return {
@@ -284,7 +307,23 @@ def compute_score(flow,volume):
         index = flow[x]
     if denominator == 0:
         denominator = 1
-    return int(2.5*score*numerator/denominator)
+    modifier = numerator/denominator
+    score = int(2*score*modifier)
+    feedback = "Great form!"
+    if modifier < .75:
+        feedback = "Try breathing in more slowly!"
+    elif length < 15:
+        feedback = "Try taking longer breathes!"
+    grade = "Needs Improvement"
+    if score > 70:
+        grade = "Fantastic"
+    elif score > 50:
+        grade = "Excellent"
+    elif score > 30:
+        grade = "Good"
+    elif score > 10:
+        grade = "Okay"
+    return [score,grade,feedback]
     
 def map_single_breath(b):
     return {
