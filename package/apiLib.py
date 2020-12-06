@@ -16,6 +16,9 @@ def get_user_info(event):
     user_info["breathCount"] = int(user_info["breathCount"])
     user_info["unlimitedExpiration"] = int(user_info["unlimitedExpiration"])
     user_info["baseline"] = int(user_info["baseline"])
+    if user_info["breathCount"] == 10:
+        if user_info["unlimitedExpiration"] < time.time_ns():
+            user_info["breathCount"] = 0
     return {
         'statusCode': 200,
         'body': json.dumps(user_info)
