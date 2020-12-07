@@ -7,8 +7,8 @@ dynamodb = boto3.resource('dynamodb')
 user_table = dynamodb.Table('users')
 drawing_table = dynamodb.Table('drawings')
 id_table = dynamodb.Table('ids')
-NUMTAGS = 8
-TAGS = ["1", "2", "3", "4", "5", "6", "7", "8"]
+NUMTAGS = 5
+TAGS = ["0", "1", "2", "3", "4"]
 
 class DatabaseException(Exception):
     """Exception raised for errors in database library.
@@ -36,7 +36,7 @@ def create_user(deviceId, userId):
         user_table.put_item(
             Item = {
                 'userId': userId,
-                'coins': 0,
+                'coins': 375,
                 'brushes': ["Basic"],
                 'paints': ["0"],
                 'baseline': 0,
@@ -149,14 +149,35 @@ def add_paint(userId, paintId):
         raise DatabaseException("add_paints", "userId does not exist")
 
 def add_background(userId, backgroundId):
-    background = f'backgrounds/png/{backgroundId}.png'
+    titles = {
+        "Flower": '01',
+        "Lady Bug": '02',
+        "Spiral Ball": '03',
+        "Happy Pentapus": '04',
+        "Phoenix": '05',
+        "Lady": '06',
+        "Butterfly": '07',
+        "Sun": '08',
+        "Turtle Tom": '09',
+        "Building": '10',
+        "Ship": '11',
+        "Fighter": '12',
+        "Giraffe": '13',
+        "Pattern 1": '14',
+        "Pattern 2": '15',
+        "Pattern 3": '16',
+        "Pattern 4": '17',
+        "The Man, The Myth, The Legend": '18',
+        "Cool": '19'
+    }
+    background = f'backgrounds/png/{titles[backgroundId]}.png'
     try:
         head = boto3.client('s3').head_object(
                 Bucket='artsy-bucket',  
                 Key=background
             )   
     except:
-        raise DatabaseException("create_user", f'background: {background} does not exist')
+        raise DatabaseException("purchase_background", f'background: {background} does not exist')
     try:
         user_table.update_item(
             Key={
