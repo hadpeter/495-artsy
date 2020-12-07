@@ -74,7 +74,7 @@ def get_user_art(event):
         }
 
         if drawing["coloringPage"] != "":
-            new_item['templateUrl'] = s3_lib.get_file('artsy-bucket', f'backgrounds/png/{titles[drawing["coloringPage"]]}.png')
+            new_item['templateUrl'] = drawing["coloringPage"]
             template.append(new_item)
         else:
             canvas.append(new_item)
