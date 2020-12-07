@@ -36,7 +36,7 @@ def create_user(deviceId, userId):
         user_table.put_item(
             Item = {
                 'userId': userId,
-                'coins': 0,
+                'coins': 375,
                 'brushes': ["Basic"],
                 'paints': ["0"],
                 'baseline': 0,
