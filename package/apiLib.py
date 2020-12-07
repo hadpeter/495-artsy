@@ -107,8 +107,27 @@ def get_drawing(event):
 
 
 def get_templates(event):
+    titles = [  "Flower",
+                "Lady Bug",
+                "Spiral Ball",
+                "Happy Pentapus",
+                "Phoenix",
+                "Lady",
+                "Butterfly",
+                "Sun",
+                "Turtle Tom",
+                "Building",
+                "Ship",
+                "Fighter",
+                "Giraffe",
+                "Pattern 1",
+                "Pattern 2",
+                "Pattern 3",
+                "Pattern 4",
+                "The Man, The Myth, The Legend",
+                "Cool.tm"]
     response = {
-            "templates": [{"title": str(n).zfill(2), "url": s3_lib.get_file('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png')} for n in range(1, 29) ]
+            "templates": [{"title": titles[n-1], "url": s3_lib.get_file('artsy-bucket', f'backgrounds/png/{str(n).zfill(2)}.png')} for n in range(1, 20) ]
     }
 
     return {
